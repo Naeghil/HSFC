@@ -15,11 +15,11 @@ import matplotlib.pyplot as pl
 import ctypes
 
 # Paths to the packages
-sys.path.append('../../')
 import src.vtract
-from src.vtract.vtutils import VTInput
 
-
+f_rate = 400
+dur_s = 1.0
+no_frames = int(round(f_rate*dur_s))
 
 # The idea is: in "1 unit" to reach 100% of the difference between current state and target
 # For the instantaneous velocity, we use the definite integral
@@ -51,8 +51,8 @@ def cupolv(t):
 def testDefault(vt):
     print('Testing default position')
     for t in range(no_frames):
-        vt.time(t, None, False, False)
-        vt.close(True, 'defo')
+        vt.time(t, None, False)
+    vt.close(no_frames, 'defo')
 
 # Available targets:
 # 'a', 'e', 'i', 'o', 'u', 'E:', '2', 'y', 'A', 'I', 'E', 'O', 'U', '9', 'Y', '@', '@6'
@@ -62,10 +62,7 @@ def testDefault(vt):
 # 3. n frames of sound (no operations)
 # 4. v_frames to stop vocalisation
 # 5. a_frames*2-1 frames to return to initial position
-
-f_rate = 400
-dur_s = .5
-no_frames = int(round(f_rate*dur_s))
+''' 
 def testTargets(vt, target, t_label):
     print('Testing vowel target: ' + t_label)
     s0 = vt.getState()
@@ -129,6 +126,7 @@ if __name__ == '__main__':
 
     pl.plot(y)
     pl.show()
+'''
 
 
 

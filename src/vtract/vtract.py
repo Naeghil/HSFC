@@ -16,8 +16,9 @@ import os
 import copy
 import numpy as np
 
-from ..vtract.vtutils import vtu
+from ..utils.utils import outputAudio
 from ..vtract.synthesizer import Synthesizer
+import src.utils.paramlists as pl
 
 # 'pressure' string
 p = 'pressure'
@@ -43,21 +44,20 @@ class VocalTract:
         if details: self.__synth.display()
         if details: self.parameters.display()
         print('  Initializing the vocal tract state...')  # as the neutral values
-        self.__state = copy.deepcopy(self.parameters.getDefaults())
-
+        self.__state = pl.State(copy.deepcopy(self.parameters.getDefaults()))
         if details: self.display()
 
+    def getApi(self):
+        return self.__synth.api
+
     def display(self):
-        info = ''
-        for key in self.parameters.getOrderedLabels():
-            info += key + '=' + str(self.__state[key]) + '  '
-        print(info)
+        print(self.__state.asString())
 
     def close(self, t=None, label=None):
         # Produce the overall audio output before closing:
         if t and t-self.__next_frame is not 0:
             self.__audio = np.append(self.__audio, self.__synth(self.__next_frame, t))
-            vtu.outputAudio(self.__audiopath, label, self.__synth.audio_sampling_rate, self.__audio)
+            outputAudio(self.__audiopath, label, self.__synth.audio_sampling_rate, self.__audio)
         # Needed because of the ctypes and internal states:
         self.__synth.close()
 
@@ -73,7 +73,7 @@ class VocalTract:
             new = in_par.get(k) + (self.__state.get(k))
             self.__state.update(k, self.parameters.validate(k, new))
 
-    def time(self, t, vtin=None, partialSynth=True, partialSave=True):
+    def time(self, t, vtin=None, partialSynth=True):
         self.__synth.dump(self.__state.asFrame())  # Save the current state as a frame
         f_left = t - self.__next_frame + 1
         if partialSynth and (f_left >= self.__fsynth):

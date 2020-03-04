@@ -17,7 +17,6 @@ import ctypes
 # Assumes src is in the same folder as main.py
 # sys.path.append('./src/')
 from src.utils.utils import extractFileInfo
-from src.utils.utils import WorkingParametersList
 from src.vtract.vtract import VocalTract
 import src.test.test as test
 
@@ -64,7 +63,7 @@ def main():
         targets = {}
         for label in t_labels:
             shape = vt.parameters.TRACT_PARAM_TYPE()
-            failure = vt.vt.vtlGetTractParams(label.encode(), ctypes.byref(shape))
+            failure = vt.getApi().vtlGetTractParams(label.encode(), ctypes.byref(shape))
             if failure != 0:
                 print('Failed to load ' + label + ', error: ' + str(failure))
             else:
@@ -82,7 +81,7 @@ def main():
     #test.testTargets(vt, targets[toTest], toTest)
 
     # Exit procedure:
-    vt.close()
+    # vt.close()
 
 
 if __name__ == '__main__':

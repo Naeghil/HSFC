@@ -9,6 +9,9 @@
 # Licence:     <your licence>
 # -------------------------------------------------------------------------------
 
+from scipy.io import wavfile
+from datetime import datetime
+
 
 def extractFileInfo(path):
     info = None
@@ -20,19 +23,7 @@ def extractFileInfo(path):
     return info
 
 
-class WorkingParametersList:
-    labels = [] # Labels of the parameters for the synthesizer
-
-    def __init__(self, vt_pars, g_pars, is_velocity=True):
-        self.vt_pars = vt_pars  # Dictionary, change in vocal tract parameters
-        self.g_pars = g_pars  # Dictionary, change in glottis parameters, adjusted:
-        d = self.g_pars.pop('d_rest')
-        self.g_pars['lower_rest_displacement'] = d
-        self.g_pars['upper_rest_displacement'] = d
-        # For testing purposes
-        self.is_vel = is_velocity  # True: treated as velocities; else as new state
-
-
-class SomatoTarget(WorkingParametersList):
-    def __init__(self):
-        WorkingParametersList.__init__(self, )
+def outputAudio(path, label, sampling_rate, audio):
+    a_file = 'audio' + ((' - '+label) if label else '') +\
+             ' - ' + datetime.now().strftime("%d-%m-%Y-%H.%M.%S") + '.wav'
+    wavfile.write(a_file, sampling_rate, audio)

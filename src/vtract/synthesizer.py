@@ -36,7 +36,7 @@ class Synthesizer:
             raise ValueError('Error in vtlInitialize!')
         print('  Retrieving constants...')
         # Temporary variables to store the constants so I can get rid of the ctypes
-        TMPasr, TMPtubenos, TMPvtparno, TMPgloparno = [ctypes.c_int(0)] * 4
+        TMPasr, TMPtubenos, TMPvtparno, TMPgloparno = (ctypes.c_int(0), ctypes.c_int(0), ctypes.c_int(0), ctypes.c_int(0))
         self.api.vtlGetConstants(ctypes.byref(TMPasr),
                                  ctypes.byref(TMPtubenos),
                                  ctypes.byref(TMPvtparno),
@@ -56,8 +56,8 @@ class Synthesizer:
         print('    Frame Rate: ' + str(self.frame_rate) + 'Hz')
 
     def dump(self, newFrame):
-        self.__vframes.append(newFrame[0])
-        self.__gframes.append(newFrame[1])
+        self.__vframes.extend(newFrame[0])
+        self.__gframes.extend(newFrame[1])
         self.__noframes += 1
 
     # "to" included
@@ -73,8 +73,8 @@ class Synthesizer:
         number_audio_samples = ctypes.c_int(0)
 
         # init the arrays
-        v_offset, v_end = [start * self.vtp_no,  to * self.vtp_no + 1]
-        tract_params = (ctypes.c_double * (no_frames * self.vtp_no))(*self.__vframes[v_offset:v_end])
+        v_offset, v_end = (start * self.vtp_no,  to * self.vtp_no + 1)
+        tract_params = (ctypes.c_double * (no_frames * self.vtp_no))(*(self.__vframes[v_offset:v_end]))
         g_offset, g_end = [start * self.gp_no, to * self.gp_no + 1]
         glottis_params = (ctypes.c_double * (no_frames * self.gp_no))(*self.__gframes[g_offset:g_end])
         audio = (ctypes.c_double * int(duration_s * self.audio_sampling_rate))()
