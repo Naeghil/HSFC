@@ -53,14 +53,6 @@ class VocalTract:
     def display(self):
         print(self.__state.asString())
 
-    def close(self, t=None, label=None):
-        # Produce the overall audio output before closing:
-        if t and t-self.__next_frame is not 0:
-            self.__audio = np.append(self.__audio, self.__synth(self.__next_frame, t))
-            outputAudio(self.__audiopath, label, self.__synth.audio_sampling_rate, self.__audio)
-        # Needed because of the ctypes and internal states:
-        self.__synth.close()
-
     # TODO check if deepcopy is actually needed
     # Returns a copy of the current state
     def getState(self):
@@ -69,7 +61,7 @@ class VocalTract:
     # In a perfect world, this would return orosensory information, but I'm not sure how to do that
     # TODO: calculate "strain" (?) from current position and natural position
     def __updateState(self, in_par):
-        for k in in_par.workingLabels:
+        for k in in_par.working_labels:
             new = in_par.get(k) + (self.__state.get(k))
             self.__state.update(k, self.parameters.validate(k, new))
 
@@ -81,3 +73,11 @@ class VocalTract:
             self.__next_frame = t+1
         if vtin:
             self.__updateState(vtin)
+
+    def close(self, t=None, label=None):
+        # Produce the overall audio output before closing:
+        if t and t-self.__next_frame is not 0:
+            self.__audio = np.append(self.__audio, self.__synth(self.__next_frame, t))
+            outputAudio(self.__audiopath, label, self.__synth.audio_sampling_rate, self.__audio)
+        # Needed because of the ctypes and internal states:
+        self.__synth.close()

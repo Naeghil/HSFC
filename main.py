@@ -57,7 +57,7 @@ def main():
     vt = None
     try:
         print('Initializing vocal tract...')
-        vt = VocalTract(conf, True)
+        vt = VocalTract(conf, False)
 
         print('Loading somatophoneme targets...')
         targets = {}
@@ -76,9 +76,13 @@ def main():
         sys.exit()
 
     # Tests
-    test.testDefault(vt)
-    # toTest = 'i'
-    #test.testTargets(vt, targets[toTest], toTest)
+    try:
+        # test.testDefault(vt)
+        toTest = 'i'
+        test.testTargets(vt, targets[toTest], toTest)
+    except Exception as e:
+        print('Test failed: ', e)
+
 
     # Exit procedure:
     # vt.close()

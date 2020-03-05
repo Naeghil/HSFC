@@ -12,14 +12,15 @@
 import sys
 import math
 import matplotlib.pyplot as pl
-import ctypes
+import src.utils.paramlists as PL
 
 # Paths to the packages
 import src.vtract
 
 f_rate = 400
-dur_s = 1.0
-no_frames = int(round(f_rate*dur_s))
+dur_s = .5
+no_frames = int(round(f_rate * dur_s))
+
 
 # The idea is: in "1 unit" to reach 100% of the difference between current state and target
 # For the instantaneous velocity, we use the definite integral
@@ -54,6 +55,7 @@ def testDefault(vt):
         vt.time(t, None, False)
     vt.close(no_frames, 'defo')
 
+
 # Available targets:
 # 'a', 'e', 'i', 'o', 'u', 'E:', '2', 'y', 'A', 'I', 'E', 'O', 'U', '9', 'Y', '@', '@6'
 # Tests routine of:
@@ -62,47 +64,41 @@ def testDefault(vt):
 # 3. n frames of sound (no operations)
 # 4. v_frames to stop vocalisation
 # 5. a_frames*2-1 frames to return to initial position
-''' 
 def testTargets(vt, target, t_label):
     print('Testing vowel target: ' + t_label)
     s0 = vt.getState()
-    lb = vt.parameters.getOrderedLabels('vocal')
-    dy = {lb[i]: (target[i] - s0[lb[i]]) for i in range(len(lb))}
+    lb = PL.ParList.vlabels
+    dy = {lb[i]: (target[i] - s0.get(lb[i])) for i in range(len(lb))}
 
     # Parameters to test:
-    # Time for articulation of vowel:
-    t_max = 0.007 # s
-    # Frames for articulation of vowel:
-    a_frames = int(round(f_rate*t_max))
-    v_frames = int(a_frames/2)
-    print(str(a_frames)+' '+str(v_frames))
+    t_max = 0.007  # s, time for articulation of vowel
+    a_frames = int(round(f_rate * t_max))  # Frames for articulation of vowel
+    v_frames = int(a_frames / 2)
 
 
     # The velocity function to use
     vel = cupolv
 
     for t in range(no_frames):
-        vtin = None
-        if 0 <= t < a_frames-1:
+        v = None
+        if 0 <= t < a_frames - 1:
             inst_vel = vel((t + 1) / a_frames) - vel(t / a_frames)
             v = {key: dy[key] * inst_vel for key in dy.keys()}
-            g = {'d_rest': 0.0, 'f0': 0.0}
-            if t > a_frames-v_frames-2:
-                g['pressure'] = 1000.0/v_frames
-                print('p_increase')
-            else: g['pressure'] = 0.0
-            vtin = VTInput(v, g)
-        l = no_frames-t-20
-        if 0 <= l < a_frames-1:
-            inst_vel = vel(l / a_frames) - vel((l+1) / a_frames)
+            v['d_rest'] = 0.0
+            v['f0'] = 0.0
+            v['pressure'] = (1000.0 / v_frames) if (t > a_frames - v_frames - 2) else 0.0
+        l = no_frames - t - 20
+        if 0 <= l < a_frames - 1:
+            inst_vel = vel(l / a_frames) - vel((l + 1) / a_frames)
             v = {key: dy[key] * inst_vel for key in dy.keys()}
-            g = {'d_rest': 0.0, 'f0': 0.0}
-            if l > a_frames-v_frames-2: g['pressure'] = -1000.0/v_frames
-            else: g['pressure'] = 0.0
-            vtin = VTInput(v, g)
-        vt.time(t, vtin, False, False)
+            v['d_rest'] = 0.0
+            v['f0'] = 0.0
+            v['pressure'] = (-1000.0 / v_frames) if l > a_frames - v_frames - 2 else  0.0
 
-    vt.close(True, t_label)
+        vtin = PL.Velocity(v) if v else None
+        vt.time(t, vtin, False)
+
+    vt.close(no_frames, t_label)
 
 
 if __name__ == '__main__':
@@ -112,21 +108,17 @@ if __name__ == '__main__':
     t = 0
     v = 0.0
     y = [y0]
-    e = 1.0*((yt-y0))
+    e = 1.0 * ((yt - y0))
 
-    while abs(y[t]-yt)>0.03:
-        d = (yt-y[t])
-        v+= d*4/(T**2)*pow(math.e, -t*d/T)
-        #v = (y[t]-(y[t]**2)/yt)*(1.0/T)
-        #v = (yt-y[t])*(1.0/T)
+    while abs(y[t] - yt) > 0.03:
+        d = (yt - y[t])
+        v += d * 4 / (T ** 2) * pow(math.e, -t * d / T)
+        # v = (y[t]-(y[t]**2)/yt)*(1.0/T)
+        # v = (yt-y[t])*(1.0/T)
         # Motor, doesn't know shit
-        #v = (e/T)*pow(math.e, -t/T)
-        y.append(y[t]+v)
+        # v = (e/T)*pow(math.e, -t/T)
+        y.append(y[t] + v)
         t += 1
 
     pl.plot(y)
     pl.show()
-'''
-
-
-

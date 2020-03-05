@@ -23,7 +23,7 @@ class ParList:
                 self.__parameters[key] = 0.0
         elif isinstance(init, dict):
             for key in self.vlabels+self.glabels:
-                self.__parameters[key] = init[key]
+                self.__parameters[key] = init.get(key, 0.0)
         elif isinstance(init, ParList):
             self.__parameters = init.__getParameters()
 
@@ -37,6 +37,10 @@ class ParList:
         info = list(k+'='+str(self.__parameters[k]) for k in self.working_labels)
         return ' '.join(info)
 
+    def update(self, k, value):
+        if k in self.working_labels:
+            self.__parameters[k] = value
+
 
 class State(ParList):
     def __init__(self, init=None):
@@ -46,3 +50,13 @@ class State(ParList):
         g = list(self._ParList__parameters[k] for k in self.glabels)
         v = list(self._ParList__parameters[k] for k in self.vlabels)
         return [v, g]
+
+
+class Velocity(ParList):
+    def __init__(self, init=None):
+        if init and isinstance(init, dict):
+            d = init.pop('d_rest', None)
+            if d:
+                init['upper_rest_displacement'] = d
+                init['lower_rest_displacement'] = d
+        ParList.__init__(self, init)
