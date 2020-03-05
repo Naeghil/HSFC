@@ -61,14 +61,10 @@ def main():
 
         print('Loading somatophoneme targets...')
         targets = {}
-        for label in t_labels:
-            shape = vt.parameters.TRACT_PARAM_TYPE()
-            failure = vt.getApi().vtlGetTractParams(label.encode(), ctypes.byref(shape))
-            if failure != 0:
-                print('Failed to load ' + label + ', error: ' + str(failure))
-            else:
-                targets[label] = shape
-
+        tar_raw = extractFileInfo('src/phono/targets')
+        for i in range(int(len(tar_raw)/2)):
+            targets[tar_raw[2*i]] = \
+                list(float(par) for par in tar_raw[2*i+1].split(' '))
     except Exception as e:
         print('Vocal Tract initialization failed: ', e)
         if vt:
@@ -79,13 +75,13 @@ def main():
     try:
         # test.testDefault(vt)
         toTest = 'i'
-        test.testTargets(vt, targets[toTest], toTest)
+        # test.testTargets(vt, targets[toTest], toTest)
     except Exception as e:
         print('Test failed: ', e)
 
 
     # Exit procedure:
-    # vt.close()
+    vt.close()
 
 
 if __name__ == '__main__':

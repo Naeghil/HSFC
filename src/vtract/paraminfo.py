@@ -19,15 +19,14 @@ class VTParametersInfo:
         self.__defs = {}
         self.__maxs = {}
 
-        # TODO The targets must be loaded somewhere else cause this is fucking madness
-        self.TRACT_PARAM_TYPE = ctypes.c_double * vtp_no
-        self.GLOTTIS_PARAM_TYPE = ctypes.c_double * gp_no
+        TRACT_PARAM_TYPE = ctypes.c_double * vtp_no
+        GLOTTIS_PARAM_TYPE = ctypes.c_double * gp_no
 
         # Vocal tract parameters
         tract_param_names = ctypes.c_char_p((' ' * 32 * vtp_no).encode())
-        tract_param_min = self.TRACT_PARAM_TYPE()
-        tract_param_max = self.TRACT_PARAM_TYPE()
-        tract_param_neutral = self.TRACT_PARAM_TYPE()
+        tract_param_min = TRACT_PARAM_TYPE()
+        tract_param_max = TRACT_PARAM_TYPE()
+        tract_param_neutral = TRACT_PARAM_TYPE()
 
         # Extract vocal tract parameters information
         vt.vtlGetTractParamInfo(tract_param_names, ctypes.byref(tract_param_min),
@@ -47,9 +46,9 @@ class VTParametersInfo:
 
         # Glottis parameters
         glottis_param_names = ctypes.c_char_p((' ' * 32 * gp_no).encode())
-        glottis_param_min = self.GLOTTIS_PARAM_TYPE()
-        glottis_param_max = self.GLOTTIS_PARAM_TYPE()
-        glottis_param_neutral = self.GLOTTIS_PARAM_TYPE()
+        glottis_param_min = GLOTTIS_PARAM_TYPE()
+        glottis_param_max = GLOTTIS_PARAM_TYPE()
+        glottis_param_neutral = GLOTTIS_PARAM_TYPE()
         # Extract glottis parameters information
         vt.vtlGetGlottisParamInfo(glottis_param_names, ctypes.byref(glottis_param_min),
                                   ctypes.byref(glottis_param_max), ctypes.byref(glottis_param_neutral))
@@ -68,17 +67,8 @@ class VTParametersInfo:
         # Pressure adjustment:
         self.__defs['pressure'] = 0.0
 
-    # TODO: change this
     def getDefaults(self):
         return self.__defs
-
-    # TODO: change this
-    def getMaxs(self):
-        return self.__maxs
-
-    # TODO: change this
-    def getMins(self):
-        return self.__mins
 
     def validate(self, key, new):
         if new < self.__mins[key]:

@@ -24,7 +24,6 @@ import src.utils.paramlists as pl
 p = 'pressure'
 
 
-# TODO: check the exceptions
 class VocalTract:
     # Construction (check the prints for details):
     def __init__(self, conf, details=True):
@@ -38,7 +37,8 @@ class VocalTract:
         self.__next_frame = 0  # Next frame to synthesize
 
         self.__audio = np.empty(0, np.int16)  # Generated audio
-        # Folder in which audio is output: TODO: understand why this doesn't work
+        # Folder in which audio is output:
+        # TODO: this doesn't work
         self.__audiopath = conf['path'] + os.sep + 'Output' + os.sep
 
         if details: self.__synth.display()
