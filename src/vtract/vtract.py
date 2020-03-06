@@ -47,6 +47,7 @@ class VocalTract:
         self.__state = pl.State(copy.deepcopy(self.parameters.getDefaults()))
         if details: self.display()
 
+    # TODO this is for test purposes
     def getApi(self):
         return self.__synth.api
 
@@ -80,4 +81,4 @@ class VocalTract:
             self.__audio = np.append(self.__audio, self.__synth(self.__next_frame, t))
             outputAudio(self.__audiopath, label, self.__synth.audio_sampling_rate, self.__audio)
         # Needed because of the ctypes and internal states:
-        self.__synth.close()
+        if self.__synth: self.__synth.close()

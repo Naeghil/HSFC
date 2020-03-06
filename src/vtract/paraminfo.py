@@ -12,6 +12,7 @@
 import ctypes
 from ..utils.paramlists import ParList as PL
 
+
 # This assumes vt and glottis parameters have different names
 class VTParametersInfo:
     def __init__(self, vt, vtp_no, gp_no):

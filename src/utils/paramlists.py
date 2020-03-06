@@ -14,7 +14,7 @@ import copy
 class ParList:
     glabels = []  # Glottis labels of the parameters for the synthesizer
     vlabels = []  # Vocal labels of the parameters for the synthesizer
-    working_labels = [] # Labels that are actually used for motion
+    working_labels = []  # Labels that are actually used for motion
 
     def __init__(self, init=None):
         self.__parameters = {}
@@ -31,7 +31,7 @@ class ParList:
         return copy.deepcopy(self.__parameters)
 
     def get(self, k):
-        return self.__parameters[k]
+        return self.__parameters.get(k, None)
 
     def asString(self):
         info = list(k+'='+str(self.__parameters[k]) for k in self.working_labels)
@@ -44,11 +44,11 @@ class ParList:
 
 class State(ParList):
     def __init__(self, init=None):
-        ParList.__init__(self, init)
+        super().__init__(init)
 
     def asFrame(self):
-        g = list(self._ParList__parameters[k] for k in self.glabels)
-        v = list(self._ParList__parameters[k] for k in self.vlabels)
+        g = list(self.get(k) for k in self.glabels)
+        v = list(self.get(k) for k in self.vlabels)
         return [v, g]
 
 
@@ -59,4 +59,35 @@ class Velocity(ParList):
             if d:
                 init['upper_rest_displacement'] = d
                 init['lower_rest_displacement'] = d
-        ParList.__init__(self, init)
+        super().__init__(init)
+
+    def get(self, k):
+        if k=='d_rest': k = 'upper_rest_displacement'
+        return super().get('upper_rest_displacement')
+    
+    def update(self, k, value):
+        if k == 'd_rest':
+            super().update('upper_rest_displacement', value)
+            super().update('lower_rest_displacement', value)
+        else:
+            super().update(k, value)
+
+
+# TODO: rework this
+class Target(Velocity):
+    def __init__(self, time, init=None, mask=None):
+        self.__activation = 0.0  # Activation of the target
+        self.__mask = {}  # Relative importance of the targets
+
+        if isinstance(init, list):
+            pass
+        else:
+            super().__init__(init)
+        if mask is None:
+            mask = {k:1.0 for k in super().working_labels}
+        for k in super().working_labels:
+            self.__mask[k] = mask[k]
+
+    # Targets are static cause no learning for now
+    def update(self, k, value):
+        pass
