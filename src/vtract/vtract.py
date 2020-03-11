@@ -54,16 +54,16 @@ class VocalTract:
     def display(self):
         print(self.__state.asString())
 
-    # TODO check if deepcopy is actually needed
+    # TODO check if deepcopy is needed
     # Returns a copy of the current state
     def getState(self):
-        return copy.deepcopy(self.__state)
+        return self.__state
 
     # In a perfect world, this would return orosensory information, but I'm not sure how to do that
     # TODO: calculate "strain" (?) from current position and natural position
-    def __updateState(self, in_par):
-        for k in in_par.working_labels:
-            new = in_par.get(k) + (self.__state.get(k))
+    def __updateState(self, vel):
+        for k in vel.working_labels:
+            new = vel.get(k) + (self.__state.get(k))
             self.__state.update(k, self.parameters.validate(k, new))
 
     def time(self, t, vtin=None, partialSynth=True):

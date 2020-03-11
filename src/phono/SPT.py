@@ -12,6 +12,7 @@
 
 import src.utils.utils as u
 
+
 class SomatoPhonemeTargets:
     def __init__(self, err):
         # TODO Might need to be different for glottis
@@ -21,15 +22,11 @@ class SomatoPhonemeTargets:
         # Plan in terms of distance to cover and in what time
         self.plan = []  # Plan for current syllable production
         # TODO this should actually also hold the vowel, or at least be a coarticulated target?
-        self.next = None # Next target in the plan as a label?
+        self.next = None  # Next target in the plan as a label?
 
-
-        print('Loading somatophoneme labels....')
         targets_raw = u.extractFileInfo('src/phono/targets')
         for i in range(int(len(targets_raw)/2)):
-            self.targets[targets_raw[i*2]] = targets_raw[i*2+1]
-
-
+            self.targets[targets_raw[i*2]] = list(float(p) for p in targets_raw[i*2+1].split())
 
 
     # TODO this actually adds a tuple ('target', activation)?

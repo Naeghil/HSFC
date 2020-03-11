@@ -34,7 +34,7 @@ class ParList:
         return self.__parameters.get(k, None)
 
     def asString(self):
-        info = list(k+'='+str(self.__parameters[k]) for k in self.working_labels)
+        info = list(k + '=' + str(round(self.__parameters[k], 6)) for k in self.working_labels)
         return ' '.join(info)
 
     def update(self, k, value):
@@ -62,8 +62,8 @@ class Velocity(ParList):
         super().__init__(init)
 
     def get(self, k):
-        if k=='d_rest': k = 'upper_rest_displacement'
-        return super().get('upper_rest_displacement')
+        if k == 'd_rest': k = 'upper_rest_displacement'
+        return super().get(k)
     
     def update(self, k, value):
         if k == 'd_rest':

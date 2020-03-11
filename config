@@ -9,9 +9,9 @@ JD2.speaker
 #Frame rate (Hz):
 #This determines the number of production events per second
 #and therefore the rate of update of the synthesizer
-#Default of 400Hz gives .0025s/frame
-400
+#Default of 1000Hz gives 1ms/frame
+1000
 #Synthesizing rate (frames):
 #This is the number of frames after which audio is actually generated
-#The default 40, with the default frame rate, produces .1s of audio at a time
-20
+#The default 100, with the default frame rate, produces .1s of audio at a time
+100

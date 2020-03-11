@@ -19,9 +19,7 @@ class Synthesizer:
     # Construction (check the prints for details):
     def __init__(self, apipath, speaker, f_rate):
         print('  Loading VocalTractLabApi binary...')
-        print(apipath)
         self.api = ctypes.cdll.LoadLibrary(apipath)
-        print('what')
         self.audio_sampling_rate = 0  # Of the synthesizer
         self.number_tube_sections = 0  # Of the articulatory model
         self.vtp_no = 0  # Number of VT parameters

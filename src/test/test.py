@@ -66,10 +66,9 @@ def testDefault(vt):
 # 5. a_frames*2-1 frames to return to initial position
 def testTargets(vt, target, t_label):
     print('Testing vowel target: ' + t_label)
-    s0 = vt.getState()
+    s0 = vt.getState().asFrame()[0]
     lb = PL.ParList.vlabels
-    dy = {lb[i]: (target[i] - s0.get(lb[i])) for i in range(len(lb))}
-
+    dy = {lb[i]: round(target[i] - s0[i], 6) for i in range(len(lb))}
     # Parameters to test:
     t_max = 0.007  # s, time for articulation of vowel
     a_frames = int(round(f_rate * t_max))  # Frames for articulation of vowel
@@ -80,21 +79,21 @@ def testTargets(vt, target, t_label):
 
     for t in range(no_frames):
         v = None
-        if 0 <= t < a_frames - 1:
+        if t in range(0, a_frames):
             inst_vel = vel((t + 1) / a_frames) - vel(t / a_frames)
             v = {key: dy[key] * inst_vel for key in dy.keys()}
-            v['d_rest'] = 0.0
+            v['d_rest'] = .00005 if (t == a_frames - 1) else 0.0
             v['f0'] = 0.0
-            v['pressure'] = (1000.0 / v_frames) if (t > a_frames - v_frames - 2) else 0.0
-        l = no_frames - t - 20
-        if 0 <= l < a_frames - 1:
+            v['pressure'] = (1000.0 / v_frames) if (t > a_frames - v_frames - 1) else 0.0
+        l = -(t - no_frames + 20)
+        if l in range(0, a_frames):
             inst_vel = vel(l / a_frames) - vel((l + 1) / a_frames)
             v = {key: dy[key] * inst_vel for key in dy.keys()}
-            v['d_rest'] = 0.0
+            v['d_rest'] = -.00005 if (l == a_frames - 1) else 0.0
             v['f0'] = 0.0
-            v['pressure'] = (-1000.0 / v_frames) if l > a_frames - v_frames - 2 else 0.0
+            v['pressure'] = (-1000.0 / v_frames) if (l > a_frames - v_frames - 1) else 0.0
 
-        vtin = PL.Velocity(v) if v else None
+        vtin = PL.Velocity(v)
         vt.time(t, vtin, False)
 
     vt.close(no_frames, t_label)
@@ -125,22 +124,25 @@ In the HSFC model, internal and external monitoring are just early and later pha
 
 
 def berk_velocity(dist, f, ti):
-    return dist * (2 * (f ** 3) * (ti ** 2) - ti * (f + 4 * f ** 2)) * (math.e ** (-f * ti))
+    return dist * (2 * (f ** 3) * (ti ** 2) - ti * (5 * f ** 2)) * (math.e ** (-f * ti))
 
 
-def v_change(dist, f):
-    return berk_velocity(dist, f, 1) - berk_velocity(dist, f, 0)
+def v_change(d1, f1, d2, f2, t):
+    return berk_velocity(d2, f2, 1+t) - berk_velocity(d1, f1, t)
 
 
 def testPModule(begin, target, time):
     # Initialized tract:
-    y = begin
-    vel = 0.0
+    y_d = begin
+    y_t = begin
+    vel_d = 0.0
+    vel_t = 0.0
     idist = target-begin
-    dist = -idist
-    trace = [y]
+    dist = begin-target
+    p_dist = begin-target
+    trace_d = [y_d]
+    trace_t = [y_t]
 
-    # TODO: THE DERIVATIVE IS WRONG WHY
     for t in range(1 * int(time)):
         # SPT
         # 1. Activation from AST [0,1]
@@ -150,19 +152,25 @@ def testPModule(begin, target, time):
         # MPP
         # 1. Activation from MSP
         # 2. Modulation from SPT
-        effort = 1.0 / (time - t) if (time - t) != 0.0 else 0.0001
-        vel += v_change(dist, effort)*(abs(dist))**4
+        effort1 = 1.0 / (time - t + 1) if (time - t + 1) != 0.0 else 0.0001
+        effort2 = 1.0 / (time - t) if (time - t) != 0.0 else 0.0001
+        vel_d += v_change(p_dist, effort1, dist, effort2, 0)
+        vel_t += v_change(-idist, 1.0/time, -idist, 1.0/time, t)
         # VT
-        y += vel
-        dist = y - target
-        trace.append(copy.copy(y))
-    return trace
+        y_d += vel_d
+        y_t += vel_t
+        p_dist = dist
+        dist = y_d - target
+        trace_d.append(copy.copy(y_d))
+        trace_t.append(copy.copy(y_t))
+    return [trace_d, trace_t]
 
 
 def main():
-    trace = testPModule(0.0, 1.0, 100.0)
+    trace = testPModule(0.0, 1.0, 50.0)
 
-    pl.plot(trace)
+    pl.plot(trace[0], 'b')
+    pl.plot(trace[1], 'r')
     pl.show()
 
 

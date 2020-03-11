@@ -12,12 +12,13 @@
 
 import os
 import sys
-import ctypes
 
 # Assumes src is in the same folder as main.py
 # sys.path.append('./src/')
 from src.utils.utils import extractFileInfo
 from src.vtract.vtract import VocalTract
+from src.phono.SPT import SomatoPhonemeTargets
+# from src.phono.MPP import MotorPhonemePrograms
 import src.test.test as test
 
 
@@ -43,12 +44,9 @@ def main():
                 'frate': int(c_info[3]),  # The frame rate
                 'fsynth': int(c_info[4])}  # The synth rate
 
-        print('Loading somatophoneme labels....')
-        t_labels = extractFileInfo(
-            path + os.sep + 'src' + os.sep + 'vtract' + os.sep + 'targets')
-        if t_labels is None:
-            print('Loading somatophoneme labels failed.')
-            sys.exit()
+        print('Loading somatophoneme targets...')
+        spt = SomatoPhonemeTargets(0.0)
+
     except Exception as e:
         print('Loading information from files failed: ', e)
         sys.exit()
@@ -57,17 +55,7 @@ def main():
     vt = None
     try:
         print('Initializing vocal tract...')
-        vt = VocalTract(conf, True)
-
-        print('Loading somatophoneme targets...')
-        targets = {}
-        for label in t_labels:
-            shape = vt.parameters.TRACT_PARAM_TYPE()
-            failure = vt.getApi().vtlGetTractParams(label.encode(), ctypes.byref(shape))
-            if failure != 0:
-                print('Failed to load ' + label + ', error: ' + str(failure))
-            else:
-                targets[label] = shape
+        vt = VocalTract(conf, False)
 
     except Exception as e:
         print('Vocal Tract initialization failed: ', e)
@@ -75,10 +63,29 @@ def main():
             vt.close()
         sys.exit()
 
+    t_labels = ['a', 'e', 'i', 'o', 'u', 'E:', 'A', 'I', 'E', 'O', 'U', '@6']
+    u_labels = ['ll-labial-nas(u)', 'll-labial-stop(u)', 'll-labial-fric(u)', 'tt-alveolar-nas(u)',
+                'tt-alveolar-stop(u)', 'tt-alveolar-lat(u)', 'tt-alveolar-fric(u)', 'tt-postalveolar-fric(u)',
+                'tb-palatal-fric(u)', 'tb-velar-stop(u)', 'tb-velar-nas(u)']
+    i_labels = ['ll-labial-nas(i)', 'll-labial-stop(i)', 'll-labial-fric(i)', 'tt-alveolar-nas(i)',
+                'tt-alveolar-stop(i)', 'tt-alveolar-lat(i)', 'tt-alveolar-fric(i)', 'tt-postalveolar-fric(i)',
+                'tb-palatal-fric(i)', 'tb-velar-stop(i)', 'tb-velar-nas(i)']
+    a_labels = ['ll-labial-nas(a)', 'll-labial-stop(a)', 'll-labial-fric(a)', 'tt-alveolar-nas(a)',
+                'tt-alveolar-stop(a)', 'tt-alveolar-lat(a)', 'tt-alveolar-fric(a)', 'tt-postalveolar-fric(a)',
+                'tb-palatal-fric(a)', 'tb-velar-stop(a)', 'tb-velar-nas(a)']
+    c_labels = ['ll-labial-nas', 'll-labial-stop', 'll-labial-fric', 'tt-alveolar-nas', 'tt-alveolar-stop',
+                'tt-alveolar-lat', 'tt-alveolar-fric', 'tt-postalveolar-fric', 'tb-palatal-fric', 'tb-velar-stop', 'tb-velar-nas']
+
+
+
+
+
+
     # Tests
-    test.testDefault(vt)
-    # toTest = 'i'
-    #test.testTargets(vt, targets[toTest], toTest)
+    # test.testDefault(vt)
+    # i = 5
+    # test.testTargets(vt, spt.targets[t_labels[i]], t_labels[i])
+
 
     # Exit procedure:
     # vt.close()
