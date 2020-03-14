@@ -73,19 +73,18 @@ def main():
     a_labels = ['ll-labial-nas(a)', 'll-labial-stop(a)', 'll-labial-fric(a)', 'tt-alveolar-nas(a)',
                 'tt-alveolar-stop(a)', 'tt-alveolar-lat(a)', 'tt-alveolar-fric(a)', 'tt-postalveolar-fric(a)',
                 'tb-palatal-fric(a)', 'tb-velar-stop(a)', 'tb-velar-nas(a)']
-    c_labels = ['ll-labial-nas', 'll-labial-stop', 'll-labial-fric', 'tt-alveolar-nas', 'tt-alveolar-stop',
-                'tt-alveolar-lat', 'tt-alveolar-fric', 'tt-postalveolar-fric', 'tb-palatal-fric', 'tb-velar-stop', 'tb-velar-nas']
-
-
-
-
-
+    c_labels = ['ll-labial-nas', 'll-labial-stop', 'll-labial-fric', 'tt-alveolar-nas', 'tt-alveolar-stop', 'tb-velar-nas',
+                'tt-alveolar-lat', 'tt-alveolar-fric', 'tt-postalveolar-fric', 'tb-palatal-fric', 'tb-velar-stop']
+    # Voiced/Voiceless?
+    actual_consonants = ['m', 'b', 'v', 'n', 'd', 'gn', 'l', 's', 'gi', 'sh?', 'g']
 
     # Tests
     # test.testDefault(vt)
     # i = 5
     # test.testTargets(vt, spt.targets[t_labels[i]], t_labels[i])
-
+    vow = ['a', 'i', 'u']
+    con = c_labels[0] + '(' + vow[0] + ')'
+    test.testSyllable(vt, spt.targets[vow[0]], vow[0], spt.targets[con], con)
 
     # Exit procedure:
     # vt.close()

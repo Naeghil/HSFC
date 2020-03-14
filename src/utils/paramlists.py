@@ -9,6 +9,7 @@
 # Licence:     <your licence>
 # -------------------------------------------------------------------------------
 import copy
+import numpy as np
 
 
 class ParList:
