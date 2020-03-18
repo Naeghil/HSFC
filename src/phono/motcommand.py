@@ -23,28 +23,32 @@ class MotorCommand:
 
     def __init__(self, target,  # The initial target of the command
                  t_max,         # Time constraint (in frames)
-                 fn_t0=None):   # List of initial values (list of parameters) for the function and its derivatives
+                 fn_t0,         # List of initial values (list of parameters) for the function and its derivatives
+                 dt):           # The time increment
         # Preparatory checks and conversions
-        if fn_t0 is None or len(fn_t0) is not self.n:
+        if fn_t0 is None or \
+                (fn_t0.shape[0] is not self.n and
+                 fn_t0.shape[1] is not len(target)):
             raise TypeError("Wrong number of initial parameters")
         parno = len(target)
         initial_values = np.array(fn_t0).reshape(self.n, parno)
 
-        self.c = np.empty((self.n, parno), dtype='f4')  # Constants for the equation
-        self.__vel_constants = np.empty((self.n, parno), dtype='f4')  # These are actually used for the velocity
+        self.c = np.empty((self.n, parno), dtype='f8')  # Constants for the equation
+        self.__vel_constants = np.empty((self.n, parno), dtype='f8')  # These are actually used for the velocity
         self.t = 0.0              # Internal time
         self.T = float(t_max)     # Time for which the command is active
-        self.target = np.array(target) # Target to reach
+        self.dt = dt
+        self.target = np.array(target)  # Target to reach
 
         a = -1.0/self.T
         # This assumes target is of the same length as the initial values, which should be so
         # Calculate all the constants TODO: reference this procedure
         self.c[0] = initial_values[0] - self.target     # c_0
         for n in range(1, self.n):
-            d = np.empty(parno, dtype='f4')
+            d = np.array([0.0]*parno, dtype='f8')
             for i in range(n):
                 d += self.c[i]*(a**(n-i))*ch(n, i)*fact(i)
-            cn = (initial_values[n] - d)/fact(n)
+            cn = (initial_values[n] - d)/float(fact(n))
             self.c[n] = cn
 
         # Calculate all the constants for velocity TODO: reference this procedure
@@ -53,14 +57,14 @@ class MotorCommand:
         self.__vel_constants[5] = a*self.c[5]
 
     def __calc_function(self, t):
-        y = np.array([0.0]*self.c.shape[1], dtype='f4')
+        y = np.array([0.0]*self.c.shape[1], dtype='f8')
         for i in range(self.n):
             y += self.c[i]*(t**i)
         y = y*(e**(-t/self.T))+self.target
         return y
 
     def __calc_vel(self, t):
-        y = np.array([0.0] * self.c.shape[1], dtype='f4')
+        y = np.array([0.0] * self.c.shape[1], dtype='f8')
         for i in range(self.n):
             y += self.__vel_constants[i] * (t ** i)
         y = y * (e ** (-t / self.T))
@@ -68,24 +72,25 @@ class MotorCommand:
 
     def __calc_derivative(self, n, t):
         a = -1.0/self.T
-        res = np.array([0.0] * self.c.shape[1], dtype='f4')
+        res = np.array([0.0] * self.c.shape[1], dtype='f8')
         for i in range(self.n):
-            qi = np.array([0.0] * self.c.shape[1], dtype='f4')
+            qi = np.array([0.0] * self.c.shape[1], dtype='f8')
             for k in range(min(self.n-i, n+1)):
-                qi += (a**n-k)*ch(n,k)*self.c[i+k]*fact(k+i)/fact(i)
+                qi_multiplier = float((a**(n-k))*ch(n, k)*fact(k+i))/float(fact(i))
+                qi += qi_multiplier*self.c[i+k]
             res += (t**i)*qi
-        return res*(e**(a*t))
+        return np.multiply(res, (e**(a*t)))
 
     def time(self):
-        acc = self.__calc_vel(self.t+1.0) - self.__calc_vel(self.t)
-        self.t += 1.0
+        acc = self.__calc_vel(self.t+self.dt) - self.__calc_vel(self.t)
+        self.t += self.dt
         return acc, self.t >= self.T
 
     def getConstants(self):
         return copy.deepcopy(self.c)
 
     def getFinalValues(self):
-        fin = np.empty(self.n)
+        fin = np.empty((self.n, self.target.shape[0]))
         for i in range(self.n):
             fin[i] = self.__calc_derivative(i, self.T)
         return fin

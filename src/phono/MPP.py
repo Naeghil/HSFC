@@ -15,10 +15,13 @@ import src.phono.motcommand as mc
 
 # A command is in terms of distance and effort, where effort is the inverse of the period
 class BirkholzMotorControl:
-    def __init__(self, initial, command_list):  # The latter is a list of tuples (target, time_costant)
+    # TODO: see if everything will be converted in np arrays
+    def __init__(self, initial, command_list, frate=None):  # The latter is a list of tuples (target, time_costant)
         self.__plan = command_list
+        self.__dt = 1.0
+        if frate is not None: self.__dt /= float(frate)
         first = self.__plan.pop(0)
-        self.__command = mc.MotorCommand(first[0], first[1], initial)
+        self.__command = mc.MotorCommand(first[0], first[1], initial, self.__dt)
 
     def addStep(self, target, time_constant):
         self.__plan.append((target, time_constant))
@@ -27,7 +30,7 @@ class BirkholzMotorControl:
         acc, end = self.__command.time()
         if end and len(self.__plan) is not 0:
             new = self.__plan.pop(0)
-            self.__command = mc.MotorCommand(new[0], new[1], self.__command.getFinalValues())
+            self.__command = mc.MotorCommand(new[0], new[1], self.__command.getFinalValues(), self.__dt)
         # If there is no more commands it means the VT should keep approaching the target
         return acc
 
