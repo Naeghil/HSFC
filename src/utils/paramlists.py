@@ -9,13 +9,13 @@
 # Licence:     <your licence>
 # -------------------------------------------------------------------------------
 import copy
-import numpy as np
+# import numpy as np
 
 
 class ParList:
     glabels = []  # Glottis labels of the parameters for the synthesizer
     vlabels = []  # Vocal labels of the parameters for the synthesizer
-    working_labels = []  # Labels that are actually used for motion
+    working_labels = []  # Labels that are actually used for motion: vlabels + p + l_rd + u_rd + f0
 
     def __init__(self, init=None):
         self.__parameters = {}
@@ -27,6 +27,14 @@ class ParList:
                 self.__parameters[key] = init.get(key, 0.0)
         elif isinstance(init, ParList):
             self.__parameters = init.__getParameters()
+        # TODO: for testing purposes
+        # Assumes d_rest has already been split
+        elif isinstance(init, list):
+            if len(init) is len(self.working_labels):
+                for i in range(len(init)):
+                    self.__parameters[self.working_labels[i]] \
+                        = init[i]
+        else: raise Exception("Wrong initialization arguments")
 
     def __getParameters(self):
         return copy.deepcopy(self.__parameters)
@@ -85,7 +93,7 @@ class Target(Velocity):
         else:
             super().__init__(init)
         if mask is None:
-            mask = {k:1.0 for k in super().working_labels}
+            mask = {k: 1.0 for k in super().working_labels}
         for k in super().working_labels:
             self.__mask[k] = mask[k]
 

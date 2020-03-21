@@ -11,7 +11,6 @@
 import copy
 
 from scipy.special import binom as ch
-import scipy as sp
 import numpy as np
 from math import e as e
 from math import factorial as fact
@@ -19,78 +18,64 @@ from math import factorial as fact
 
 # Sixth order differential equation
 class MotorCommand:
-    n = 6  # The order of the command
+    N = 6  # The order of the differential system representing the command
 
-    def __init__(self, target,  # The initial target of the command
-                 t_max,         # Time constraint (in frames)
+    def __init__(self, target,  # The target of the command
+                 t_con,         # Time constant (in ms)
                  fn_t0,         # List of initial values (list of parameters) for the function and its derivatives
-                 dt):           # The time increment
+                 dt):           # Time increment
         # Preparatory checks and conversions
         if fn_t0 is None or \
-                (fn_t0.shape[0] is not self.n and
+                (fn_t0.shape[0] is not self.N and
                  fn_t0.shape[1] is not len(target)):
             raise TypeError("Wrong number of initial parameters")
-        parno = len(target)
-        initial_values = np.array(fn_t0).reshape(self.n, parno)
-
-        self.c = np.empty((self.n, parno), dtype='f8')  # Constants for the equation
-        self.__vel_constants = np.empty((self.n, parno), dtype='f8')  # These are actually used for the velocity
+        initial_values = np.array(fn_t0).reshape(self.N, len(target))
+        # Instance variables:
+        self.p_no = len(target)  # Number of parameters in the target
+        self.c = np.empty((self.N, self.p_no), dtype='f8')  # Constants for the equation
         self.t = 0.0              # Internal time
-        self.T = float(t_max)     # Time for which the command is active
+        self.a = -1.0/t_con  # Effort
         self.dt = dt
         self.target = np.array(target)  # Target to reach
 
-        a = -1.0/self.T
+
         # This assumes target is of the same length as the initial values, which should be so
         # Calculate all the constants TODO: reference this procedure
         self.c[0] = initial_values[0] - self.target     # c_0
-        for n in range(1, self.n):
-            d = np.array([0.0]*parno, dtype='f8')
-            for i in range(n):
-                d += self.c[i]*(a**(n-i))*ch(n, i)*fact(i)
-            cn = (initial_values[n] - d)/float(fact(n))
-            self.c[n] = cn
+        for i in range(1, self.N):
+            d = np.array([0.0]*self.p_no, dtype='f8')
+            for k in range(i):
+                d += self.c[k] * (self.a**(i-k)) * fact(i) / fact(i-k)
+            cn = (initial_values[i] - d) / fact(i)
+            self.c[i] = cn
 
-        # Calculate all the constants for velocity TODO: reference this procedure
-        for n in range(self.n-1):
-            self.__vel_constants[n] = a*self.c[n]+(n+1)*self.c[n+1]
-        self.__vel_constants[5] = a*self.c[5]
-
-    def __calc_function(self, t):
-        y = np.array([0.0]*self.c.shape[1], dtype='f8')
-        for i in range(self.n):
-            y += self.c[i]*(t**i)
-        y = y*(e**(-t/self.T))+self.target
+    # The equation is capable of calculating any derivative (der) up to self.N
+    def __y(self, t, der=0):
+        y = np.array([0.0]*self.p_no, dtype='f8')
+        for i in range(self.N):
+            qi = np.array([0.0]*self.p_no, dtype='f8')
+            for k in range(min(self.N-i, der + 1)):
+                qi += (self.a**(der-k)) * (ch(der, k)) * self.c[i+k] * (fact(k+i)) / (fact(i))
+            y += qi*(t**i)
+        y = y*(e**(self.a*t))
+        if der is 0: y += self.target
         return y
 
-    def __calc_vel(self, t):
-        y = np.array([0.0] * self.c.shape[1], dtype='f8')
-        for i in range(self.n):
-            y += self.__vel_constants[i] * (t ** i)
-        y = y * (e ** (-t / self.T))
-        return y
-
-    def __calc_derivative(self, n, t):
-        a = -1.0/self.T
-        res = np.array([0.0] * self.c.shape[1], dtype='f8')
-        for i in range(self.n):
-            qi = np.array([0.0] * self.c.shape[1], dtype='f8')
-            for k in range(min(self.n-i, n+1)):
-                qi_multiplier = float((a**(n-k))*ch(n, k)*fact(k+i))/float(fact(i))
-                qi += qi_multiplier*self.c[i+k]
-            res += (t**i)*qi
-        return np.multiply(res, (e**(a*t)))
+    # TODO: for testing purposes
+    def y(self):
+        self.t += self.dt
+        return self.__y(self.t)
 
     def time(self):
-        acc = self.__calc_vel(self.t+self.dt) - self.__calc_vel(self.t)
+        acc = self.__y(self.t+self.dt, 1) - self.__y(self.t, 1)
         self.t += self.dt
-        return acc, self.t >= self.T
+        return acc
 
     def getConstants(self):
         return copy.deepcopy(self.c)
 
     def getFinalValues(self):
-        fin = np.empty((self.n, self.target.shape[0]))
-        for i in range(self.n):
-            fin[i] = self.__calc_derivative(i, self.T)
+        fin = np.empty((self.N, self.target.shape[0]))
+        for i in range(self.N):
+            fin[i] = self.__y(self.t, i)
         return fin
