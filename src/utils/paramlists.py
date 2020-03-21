@@ -10,6 +10,7 @@
 # -------------------------------------------------------------------------------
 import copy
 # import numpy as np
+import numpy as np
 
 
 class ParList:
@@ -29,7 +30,7 @@ class ParList:
             self.__parameters = init.__getParameters()
         # TODO: for testing purposes
         # Assumes d_rest has already been split
-        elif isinstance(init, list):
+        elif isinstance(init, np.ndarray):
             if len(init) is len(self.working_labels):
                 for i in range(len(init)):
                     self.__parameters[self.working_labels[i]] \

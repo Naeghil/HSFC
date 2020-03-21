@@ -60,9 +60,10 @@ class VocalTract:
 
     # TODO: for test purposes
     def setState(self, new):
+        self.__synth.dump(self.__state.asFrame())
         for k in new.working_labels:
             self.__state.update(
-                k, self.parameters.validate(k, new[k]))
+                k, self.parameters.validate(k, new.get(k)))
 
     # In a perfect world, this would return orosensory information, but I'm not sure how to do that
     # TODO: calculate "strain" (?) from current position and natural position

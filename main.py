@@ -83,8 +83,10 @@ def main():
     # i = 5
     # test.testTargets(vt, spt.targets[t_labels[i]], t_labels[i])
     vow = ['a', 'i', 'u']
-    con = c_labels[0] + '(' + vow[0] + ')'
-    test.testSyllable(vt, spt.targets[vow[0]], vow[0], spt.targets[con], con)
+    vi = 1
+    ci = 0
+    con = c_labels[ci] + '(' + vow[vi] + ')'
+    test.testSyllable(vt, spt.targets[vow[vi]], vow[vi], spt.targets[con], con)
 
     # Exit procedure:
     # vt.close()

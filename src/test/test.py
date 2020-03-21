@@ -54,6 +54,7 @@ def make_constants(inits, T, tar):
 
 
 def testSyllable(VT, vtarget, vlabel, ctarget, clabel):
+    # TODO: set up a second channel for phonation or change pressure target
     print('Testing syllable: ' + clabel + "/" + vlabel)
     # Settin up parameters
     lb = PL.ParList.vlabels + \
@@ -67,17 +68,18 @@ def testSyllable(VT, vtarget, vlabel, ctarget, clabel):
     inits = np.array(s0 + [0.0] * par_no * 5, dtype='f8').reshape(6, par_no)
     # y = np.array(s0, dtype='f8')
     # Set up targets and plan
+    err: float = 0.16
     tar1 = ctarget + [0.0, 0.00015, 0.00015, 120.0]
     T1 = 10.0  # Time constant for consonant approach
     tarp = ctarget + [1000.0, 0.00015, 0.00015, 120.0]  # .05/0.15 /b/ /d/, 0.25mm g; phonation target
-    # TP = 1.0  # Time constant for phonation
+    TP = 4.0  # Time constant for phonation
     tar2 = vtarget + [1000.0, 0.00015, 0.00015, 120.0]  # always 0.15 for vowel
     # 7ms for /l/, 15ms for /b/, /d/, /g/, and /r/, 25ms for /m/ and /n/
     T2 = 25.0  # Time constant for vowel approach
-    T3 = 30.0  # Time constant for relaxation
+    T3 = 5.0  # Time constant for relaxation
     # plan = [(tar1, T1)]
-    plan = [(tar1, T1), (tar2, T2), (s0, T3)]
-    # plan = [(ct, T1), (pt, T2), (vt, T3), (s0, T4)]
+    plan = [(tar1, T1), (tarp, TP), (tar2, T2), (s0, T3)]
+    # plan = [(tar1, T1), (tarp, TP), (tar2, T2), (tarp, T1), (tar2, T2), (s0, T3)]
     # Initialize MPP
     MPP = mpp.MotorPhonemePrograms(inits, plan, f_rate)
 
@@ -91,12 +93,13 @@ def testSyllable(VT, vtarget, vlabel, ctarget, clabel):
     while True:
         curr = MPP.ttime()
         frames.append(curr)
+        VT.setState(PL.ParList(curr))
         t += 1
-        if (np.square(curr - MPP.current_target())).mean() < 0.2:
-            print("change at "+str(t))
+        if (np.square(curr - MPP.current_target())).mean() < err:
             if not MPP.advance():
                 break
-
+            # if t > 100: break
+#    '''
     plt = np.array(frames).T
     rem_idxs = [21, 22, 23, 27]
     plt = np.delete(plt, rem_idxs, axis=0)
@@ -111,9 +114,11 @@ def testSyllable(VT, vtarget, vlabel, ctarget, clabel):
     plot.plot_all(plt, [s0, tar1, tarp, tar2], ['k', 'b', 'g', 'r'], len(frames))
     # i = 2
     # plot.plot(plt[i], [s0[i], tar1[i], tarp[i], tar2[i]], ['k', 'b', 'g', 'r'], plt[i].shape[0])
-
-    # VT.close(t, "try")
-    VT.close()
+#    '''
+    if 1 is 1:
+        VT.close(t, "try")
+    else:
+        VT.close()
 
 
 class plot:
@@ -125,7 +130,6 @@ class plot:
         # Vowel: red
         fig = pl.figure()
         par_no = data.shape[0]
-        print(par_no)
         for i in range(par_no):
             sf = fig.add_subplot(6, 4, i+1)
             sf.plot(data[i])
@@ -165,7 +169,6 @@ def main():
     while t <= 400.0:
         x.append(y(t - off_t))
         t += 0.2
-        # TODO: check what the error does
         if (x[-1] - current) ** 2 < 0.05 and len(plan) is not 0:
             current, tt = plan.pop(0)
             new_inits = []
