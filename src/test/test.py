@@ -68,7 +68,7 @@ def testSyllable(VT, vtarget, vlabel, ctarget, clabel):
     inits = np.array(s0 + [0.0] * par_no * 5, dtype='f8').reshape(6, par_no)
     # y = np.array(s0, dtype='f8')
     # Set up targets and plan
-    err: float = 0.16
+    err: float = 0.04
     tar1 = ctarget + [0.0, 0.00015, 0.00015, 120.0]
     T1 = 10.0  # Time constant for consonant approach
     tarp = ctarget + [1000.0, 0.00015, 0.00015, 120.0]  # .05/0.15 /b/ /d/, 0.25mm g; phonation target
@@ -76,10 +76,12 @@ def testSyllable(VT, vtarget, vlabel, ctarget, clabel):
     tar2 = vtarget + [1000.0, 0.00015, 0.00015, 120.0]  # always 0.15 for vowel
     # 7ms for /l/, 15ms for /b/, /d/, /g/, and /r/, 25ms for /m/ and /n/
     T2 = 25.0  # Time constant for vowel approach
-    T3 = 5.0  # Time constant for relaxation
+    T3 = 10.0  # Time constant for relaxation
+    tarnp = vtarget + [0.0, 0.00015, 0.00015, 120.0]
+    TNP = 4.0
     # plan = [(tar1, T1)]
-    plan = [(tar1, T1), (tarp, TP), (tar2, T2), (s0, T3)]
-    # plan = [(tar1, T1), (tarp, TP), (tar2, T2), (tarp, T1), (tar2, T2), (s0, T3)]
+    # plan = [(tar1, T1), (tarp, TP), (tar2, T2), (tarnp, TNP), (s0, T3)]
+    plan = [(tar1, T1), (tarp, TP), (tar2, T2), (tarp, T1), (tar2, T2), (tarnp, TNP), (s0, T3)]
     # Initialize MPP
     MPP = mpp.MotorPhonemePrograms(inits, plan, f_rate)
 
