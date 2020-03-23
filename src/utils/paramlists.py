@@ -8,96 +8,89 @@
 # Copyright:   (c) Roberto Sautto 2020
 # Licence:     <your licence>
 # -------------------------------------------------------------------------------
-import copy
-# import numpy as np
 import numpy as np
+from abc import abstractmethod
+
+from src.vtract.paraminfo import VTParametersInfo as PI
 
 
-class ParList:
-    glabels = []  # Glottis labels of the parameters for the synthesizer
-    vlabels = []  # Vocal labels of the parameters for the synthesizer
-    working_labels = []  # Labels that are actually used for motion: vlabels + p + l_rd + u_rd + f0
+# This is not meant to be used on its own
+class ParList(object):
+    _wl_indexes = {}  # Used to index the internal representation for all parameters
+    _al_indexes = {}  # Used to index the internal representation for working parameters
 
-    def __init__(self, init=None):
-        self.__parameters = {}
-        if init is None:
-            for key in self.vlabels+self.glabels:
-                self.__parameters[key] = 0.0
-        elif isinstance(init, dict):
-            for key in self.vlabels+self.glabels:
-                self.__parameters[key] = init.get(key, 0.0)
-        elif isinstance(init, ParList):
-            self.__parameters = init.__getParameters()
-        # TODO: for testing purposes
-        # Assumes d_rest has already been split
-        elif isinstance(init, np.ndarray):
-            if len(init) is len(self.working_labels):
-                for i in range(len(init)):
-                    self.__parameters[self.working_labels[i]] \
-                        = init[i]
-        else: raise Exception("Wrong initialization arguments")
+    @staticmethod
+    def setIndexes(all_labels, working_labels):
+        ParList.__al_indexes = {all_labels[idx]: idx for idx in len(all_labels)}
+        ParList.__wl_indexes = {working_labels[idx]: idx for idx in len(working_labels)}
 
-    def __getParameters(self):
-        return copy.deepcopy(self.__parameters)
+    @abstractmethod
+    def __init__(self):
+        pass
+
+    def _init(self, idxs, init=None):
+        self._idx = idxs
+        req_par = len(idxs)
+        if init is None:  # Zero full-list
+            self._parameters = np.array([0.0]*req_par)
+        elif isinstance(init, ParList) and \
+                len(init._parameters) == req_par:
+            self._parameters = np.array(init._parameters, dtype='f8')
+        elif isinstance(init, (np.ndarray, list)) and \
+                len(init) == req_par:
+            self._parameters = np.array(init, dtype='f8')
+        else:
+            raise Exception("Wrong initialization arguments")
 
     def get(self, k):
-        return self.__parameters.get(k, None)
+        idx = self._idx.get(k, None)
+        return self._parameters[idx] if idx else None
 
     def asString(self):
-        info = list(k + '=' + str(round(self.__parameters[k], 6)) for k in self.working_labels)
+        info = list(k + '=' +
+                    str(round(self._parameters[self._idx[k]], 6))
+                    for k in self._idx.keys())
         return ' '.join(info)
 
     def update(self, k, value):
-        if k in self.working_labels:
-            self.__parameters[k] = value
+        idx = self._idx.get(k, None)
+        if idx: self._parameters[idx] = value
 
 
+# A State must have all the parameters, as it must be converted to a frame
 class State(ParList):
     def __init__(self, init=None):
-        super().__init__(init)
+        super(State, self).__init__()
+        super(State, self)._init(super()._al_indexes, init)
 
     def asFrame(self):
-        g = list(self.get(k) for k in self.glabels)
-        v = list(self.get(k) for k in self.vlabels)
+        idx = super(State, self)._idx
+        v = list(super(State, self)._parameters[idx[k]] for k in PI.vlabels)
+        g = list(super(State, self)._parameters[idx[k]] for k in PI.glabels)
         return [v, g]
 
+    def update(self, k, value: float):
+        idx = self._idx.get(k, None)
+        if idx: self._parameters[idx] = PI.validate(k, value)
 
-class Velocity(ParList):
+
+class WorkingParList(ParList):
+    @abstractmethod
+    def __init__(self, init):
+        super(WorkingParList, self).__init__()
+        super(WorkingParList, self)._init(super(WorkingParList, self)._wl_indexes, init)
+
+
+class Velocity(WorkingParList):
     def __init__(self, init=None):
-        if init and isinstance(init, dict):
-            d = init.pop('d_rest', None)
-            if d:
-                init['upper_rest_displacement'] = d
-                init['lower_rest_displacement'] = d
-        super().__init__(init)
-
-    def get(self, k):
-        if k == 'd_rest': k = 'upper_rest_displacement'
-        return super().get(k)
-    
-    def update(self, k, value):
-        if k == 'd_rest':
-            super().update('upper_rest_displacement', value)
-            super().update('lower_rest_displacement', value)
-        else:
-            super().update(k, value)
+        super(Velocity, self).__init__(init)
 
 
-# TODO: rework this
-class Target(Velocity):
-    def __init__(self, time, init=None, mask=None):
-        self.__activation = 0.0  # Activation of the target
-        self.__mask = {}  # Relative importance of the targets
+class Target(WorkingParList):
+    def __init__(self, t_constant, init=None):
+        super(Target, self).__init__(init)
+        self.effort = -1/t_constant
 
-        if isinstance(init, list):
-            pass
-        else:
-            super().__init__(init)
-        if mask is None:
-            mask = {k: 1.0 for k in super().working_labels}
-        for k in super().working_labels:
-            self.__mask[k] = mask[k]
-
-    # Targets are static cause no learning for now
-    def update(self, k, value):
-        pass
+    def makeNonPhonatory(self, t_constant):
+        pp = Target(t_constant, self)
+        super(Target, pp).update('pressure', 0.0)

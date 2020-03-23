@@ -9,6 +9,7 @@
 # Licence:     <your licence>
 # -------------------------------------------------------------------------------
 import math
+from src.vtract.paraminfo import VTParametersInfo as PI
 import src.utils.paramlists as PL
 
 f_rate = 2000
@@ -47,7 +48,7 @@ def testDefault(vt):
 def testTargets(vt, target, t_label):
     print('Testing vowel target: ' + t_label)
     s0 = vt.getState().asFrame()[0]
-    lb = PL.ParList.vlabels
+    lb = PI.vlabels
     dy = {lb[i]: round(target[i] - s0[i], 6) for i in range(len(lb))}
     # Parameters to test:
     t_max = 0.007  # s, time for articulation of vowel

@@ -12,7 +12,7 @@ import math
 from scipy.special import binom as ch
 
 import matplotlib.pyplot as pl
-import src.utils.paramlists as PL
+from src.vtract.paraminfo import VTParametersInfo as PI
 import numpy as np
 import src.phono.MPP as mpp
 
@@ -57,7 +57,7 @@ def testSyllable(VT, vtarget, vlabel, ctarget, clabel):
     # TODO: set up a second channel for phonation or change pressure target
     print('Testing syllable: ' + clabel + "/" + vlabel)
     # Settin up parameters
-    lb = PL.ParList.vlabels + \
+    lb = PI.vlabels + \
          ['pressure', 'lower_rest_displacement', 'upper_rest_displacement', 'f0']
     par_no = len(lb)
     # Set up of initial dynamic state:

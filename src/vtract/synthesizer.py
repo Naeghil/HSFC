@@ -11,8 +11,7 @@
 import ctypes
 
 import numpy as np
-
-from ..vtract.paraminfo import VTParametersInfo
+from src.vtract.paraminfo import VTParametersInfo
 
 
 class Synthesizer:

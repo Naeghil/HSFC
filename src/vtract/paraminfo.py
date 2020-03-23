@@ -10,11 +10,14 @@
 # -------------------------------------------------------------------------------
 
 import ctypes
-from ..utils.paramlists import ParList as PL
 
 
 # This assumes vt and glottis parameters have different names
 class VTParametersInfo:
+    glabels = []
+    vlabels = []
+    working_labels = []  # Labels that are actually used for motion: vlabels + p + l_rd + u_rd + f0
+
     def __init__(self, vt, vtp_no, gp_no):
         self.__mins = {}
         self.__defs = {}
@@ -33,14 +36,14 @@ class VTParametersInfo:
         vt.vtlGetTractParamInfo(tract_param_names, ctypes.byref(tract_param_min),
                                 ctypes.byref(tract_param_max), ctypes.byref(tract_param_neutral))
         # Store labels in the appropriate class variables
-        PL.vlabels = tract_param_names.value.decode().split()
-        PL.working_labels.extend(PL.vlabels)
+        self.vlabels = tract_param_names.value.decode().split()
+        self.working_labels.extend(self.vlabels)
 
         vtp_max = list(tract_param_max)
         vtp_min = list(tract_param_min)
         vtp_def = list(tract_param_neutral)
-        for i in range(len(PL.vlabels)):
-            l = PL.vlabels[i]
+        for i in range(len(self.vlabels)):
+            l = self.vlabels[i]
             self.__mins[l] = vtp_min[i]
             self.__defs[l] = vtp_def[i]
             self.__maxs[l] = vtp_max[i]
@@ -55,13 +58,13 @@ class VTParametersInfo:
                                   ctypes.byref(glottis_param_max), ctypes.byref(glottis_param_neutral))
 
         # Store labels in the appropriate class variables
-        PL.glabels = glottis_param_names.value.decode().split()
-        PL.working_labels.extend(['pressure', 'lower_rest_displacement', 'upper_rest_displacement', 'f0'])
+        self.glabels = glottis_param_names.value.decode().split()
+        self.working_labels.extend(['pressure', 'lower_rest_displacement', 'upper_rest_displacement', 'f0'])
         g_max = list(glottis_param_max)
         g_min = list(glottis_param_min)
         g_def = list(glottis_param_neutral)
-        for i in range(len(PL.glabels)):
-            l = PL.glabels[i]
+        for i in range(len(self.glabels)):
+            l = self.glabels[i]
             self.__mins[l] = g_min[i]
             self.__defs[l] = g_def[i]
             self.__maxs[l] = g_max[i]
@@ -71,7 +74,7 @@ class VTParametersInfo:
     def getDefaults(self):
         return self.__defs
 
-    def validate(self, key, new):
+    def validate(self, key: str, new: float) -> float:
         if new < self.__mins[key]:
             return self.__mins[key]
         if new > self.__maxs[key]:
@@ -81,7 +84,7 @@ class VTParametersInfo:
     def display(self):
         print('    Parameters as Label(min/def/max):')
         vt_info = list(k+'('+str(self.__mins[k])+'/'+str(self.__defs[k])+'/'+str(self.__maxs[k])+')  '
-                       for k in PL.vlabels)
+                       for k in self.vlabels)
         g_info = list(k+'('+str(self.__mins[k])+'/'+str(self.__defs[k])+'/'+str(self.__maxs[k])+')  '
                       for k in ['pressure', 'f0', 'upper_rest_displacement', 'lower_rest_displacement'])
         print(' '.join(vt_info))

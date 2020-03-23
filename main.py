@@ -14,48 +14,52 @@ import os
 import sys
 
 # Assumes src is in the same folder as main.py
-# sys.path.append('./src/')
-from src.utils.utils import extractFileInfo
-from src.vtract.vtract import VocalTract
+import src.utils.init_utils as init
+import src.vtract.expose as vtract
+
+import src.utils.paramlists as PL
 from src.phono.SPT import SomatoPhonemeTargets
 # from src.phono.MPP import MotorPhonemePrograms
 import src.test.test as test
 
 
 def main():
+    details = False
+
     path = os.getcwd()
     while os.path.basename(path) != 'HSFC':
         path = os.path.normpath(path + os.sep + os.pardir)
 
-    # Loading information from files:
+    # Initializing system-wide configurations:
     try:
         print('Loading configuration...')
-        c_info = extractFileInfo(path + os.sep + 'config')
-        if c_info is None:
-            print('Loading configuration failed.')
-            sys.exit()
-
-        ext = '.dll' if sys.platform == 'win32' else '.so'
-        conf = {'path': path,  # Path to the root of the application
-                'apipath':  # Full path to the VTLAPI
-                    path + c_info[1] + 'VocalTractLabApi' + c_info[0] + ext,
-                'speaker':  # Full path to the speaker file
-                    path + c_info[1] + c_info[2],
-                'frate': int(c_info[3]),  # The frame rate
-                'fsynth': int(c_info[4])}  # The synth rate
+        conf = init.loadConfig()
+        # Even though this is not a configuration,
+        # the api requires to be initialized before
+        # parameters information can be extracted
+        print('Initializing syntesizer...')
+        synthesizer = vtract.Synthesizer(conf['apipath'], conf['speaker'], conf['frate'])
+        if details: synthesizer.display()
+        print('Loading parameters information...')
+        param_info = synthesizer.getParametersInfo()
+        if details: param_info.display()
+        print('Initializing parameters list indexing...')
+        # Using parameters info to set up the paramlist indexing method
+        PL.ParList.setIndexes(param_info.vlabels+param_info.glabels, param_info.working_labels)
 
         print('Loading somatophoneme targets...')
         spt = SomatoPhonemeTargets(0.0)
 
     except Exception as e:
-        print('Loading information from files failed: ', e)
+        print('Loading configuration failed: ', e)
         sys.exit()
 
     # Initializations:
     vt = None
     try:
         print('Initializing vocal tract...')
-        vt = VocalTract(conf, False)
+        audiopath = conf['path'] + os.sep + 'Output' + os.sep
+        vt = vtract.VocalTract(synthesizer, conf['fsynth'], param_info.getDefaults(), param_info.validate, audiopath)
 
     except Exception as e:
         print('Vocal Tract initialization failed: ', e)
