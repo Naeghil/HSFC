@@ -34,7 +34,8 @@ class Synthesizer:
             raise ValueError('Error in vtlInitialize!')
         print('  Retrieving constants...')
         # Temporary variables to store the constants so I can get rid of the ctypes
-        TMPasr, TMPtubenos, TMPvtparno, TMPgloparno = (ctypes.c_int(0), ctypes.c_int(0), ctypes.c_int(0), ctypes.c_int(0))
+        TMPasr, TMPtubenos, TMPvtparno, TMPgloparno = \
+            (ctypes.c_int(0), ctypes.c_int(0), ctypes.c_int(0), ctypes.c_int(0))
         self.api.vtlGetConstants(ctypes.byref(TMPasr),
                                  ctypes.byref(TMPtubenos),
                                  ctypes.byref(TMPvtparno),

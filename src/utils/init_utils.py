@@ -34,6 +34,5 @@ def loadConfig(path):
             'speaker':  # Full path to the speaker file
                 path + c_info[1] + c_info[2],
             'frate': int(c_info[3]),  # The frame rate
-            'fsynth': int(c_info[4]),  # The synth rate
-            'err': float(c_info[5])}  # The SST error
+            'fsynth': int(c_info[4])}  # The synth rate
     return conf

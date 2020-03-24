@@ -16,6 +16,7 @@ import numpy as np
 
 from src.utils.utils import outputAudio
 import src.utils.paramlists as pl
+from src.vtract.paraminfo import VTParametersInfo as PI
 
 # 'pressure' string
 p = 'pressure'
@@ -26,14 +27,11 @@ class VocalTract:
     def __init__(self, synth, f_synth, initial_state, audio_path="./"):
         self.__synth = synth  # The synthesizer
         self.__fsynth = f_synth  # States synthesized together
-        self.__state = pl.State(initial_state)  # Current state, initialized as the neutral values
+        init_state = list(initial_state[k] for k in PI.vlabels+PI.glabels)
+        self.__state = pl.State(init_state)  # Current state, initialized as the neutral values
         self.__next_frame = 0  # Next frame to synthesize
         self.__audio = np.empty(0, np.int16)  # Generated audio
         self.__audiopath = audio_path  # Folder in which audio is output
-
-    # TODO this is for test purposes
-    def getApi(self):
-        return self.__synth.api
 
     def display(self):
         print(self.__state.asString())
@@ -45,13 +43,12 @@ class VocalTract:
     # TODO: for test purposes
     def setState(self, new):
         self.__synth.dump(self.__state.asFrame())
-        for k in new.working_labels:
+        for k in PI.working_labels:
             self.__state.update(k, new.get(k))
 
     # In a perfect world, this would return orosensory information, but I'm not sure how to do that
-    # TODO: calculate "strain" (?) from current position and natural position
     def __updateState(self, vel):
-        for k in vel.working_labels:
+        for k in PI.working_labels:
             new = vel.get(k) + (self.__state.get(k))
             self.__state.update(k, new)
 

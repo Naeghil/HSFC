@@ -21,8 +21,8 @@ class ParList(object):
 
     @staticmethod
     def setIndexes(all_labels, working_labels):
-        ParList.__al_indexes = {all_labels[idx]: idx for idx in len(all_labels)}
-        ParList.__wl_indexes = {working_labels[idx]: idx for idx in len(working_labels)}
+        ParList._al_indexes = {all_labels[idx]: idx for idx in range(len(all_labels))}
+        ParList._wl_indexes = {working_labels[idx]: idx for idx in range(len(working_labels))}
 
     @abstractmethod
     def __init__(self):
@@ -52,6 +52,10 @@ class ParList(object):
                     for k in self._idx.keys())
         return ' '.join(info)
 
+    # TODO: to be used later
+    def asTargetParameters(self):
+        return np.array(list(self._parameters[self._idx[k]] for k in PI.working_labels), 'f8')
+
     def update(self, k, value):
         idx = self._idx.get(k, None)
         if idx: self._parameters[idx] = value
@@ -59,19 +63,21 @@ class ParList(object):
 
 # A State must have all the parameters, as it must be converted to a frame
 class State(ParList):
+    validate = None
+
     def __init__(self, init=None):
         super(State, self).__init__()
-        super(State, self)._init(super()._al_indexes, init)
+        super(State, self)._init(self._al_indexes, init)
 
     def asFrame(self):
-        idx = super(State, self)._idx
-        v = list(super(State, self)._parameters[idx[k]] for k in PI.vlabels)
-        g = list(super(State, self)._parameters[idx[k]] for k in PI.glabels)
+        idx = self._idx
+        v = list(self._parameters[idx[k]] for k in PI.vlabels)
+        g = list(self._parameters[idx[k]] for k in PI.glabels)
         return [v, g]
 
     def update(self, k, value: float):
         idx = self._idx.get(k, None)
-        if idx: self._parameters[idx] = PI.validate(k, value)
+        if idx: self._parameters[idx] = self.validate(k, value)
 
 
 class WorkingParList(ParList):
@@ -79,6 +85,9 @@ class WorkingParList(ParList):
     def __init__(self, init):
         super(WorkingParList, self).__init__()
         super(WorkingParList, self)._init(super(WorkingParList, self)._wl_indexes, init)
+
+    def asTargetParameters(self):
+        return np.array(self._parameters)
 
 
 class Velocity(WorkingParList):

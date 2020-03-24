@@ -13,12 +13,22 @@ from scipy.special import binom as ch
 
 import matplotlib.pyplot as pl
 from src.vtract.paraminfo import VTParametersInfo as PI
+from src.utils.paramlists import Target
 import numpy as np
 import src.phono.MPP as mpp
 
 f_rate = 1000
 
 N = 6  # Order of the system
+
+
+def testDefault(vt):
+    print('Testing default position')
+    dur_s = 0.5
+    no_frames = int(round(f_rate * dur_s))
+    for t in range(no_frames):
+        vt.time(t, None, False)
+    vt.close(no_frames, 'defo')
 
 
 # Single command version
@@ -53,35 +63,19 @@ def make_constants(inits, T, tar):
     return c
 
 
-def testSyllable(VT, vtarget, vlabel, ctarget, clabel):
-    # TODO: set up a second channel for phonation or change pressure target
+def testSyllable(VT, rest, vtarget, vlabel, ctarget, clabel):
     print('Testing syllable: ' + clabel + "/" + vlabel)
-    # Settin up parameters
-    lb = PI.vlabels + \
-         ['pressure', 'lower_rest_displacement', 'upper_rest_displacement', 'f0']
-    par_no = len(lb)
-    # Set up of initial dynamic state:
-    state = VT.getState()
-    s0 = state.asFrame()[0] + \
-         [state.get('pressure'), state.get('lower_rest_displacement'),
-          state.get('upper_rest_displacement'), state.get('f0')]
-    inits = np.array(s0 + [0.0] * par_no * 5, dtype='f8').reshape(6, par_no)
-    # y = np.array(s0, dtype='f8')
-    # Set up targets and plan
+    # Settinf up plan; this is the responsibility of the higher level target
     err: float = 0.04
-    tar1 = ctarget + [0.0, 0.00015, 0.00015, 120.0]
-    T1 = 10.0  # Time constant for consonant approach
-    tarp = ctarget + [1000.0, 0.00015, 0.00015, 120.0]  # .05/0.15 /b/ /d/, 0.25mm g; phonation target
-    TP = 4.0  # Time constant for phonation
-    tar2 = vtarget + [1000.0, 0.00015, 0.00015, 120.0]  # always 0.15 for vowel
+    par_no = len(rest)
+    inits = np.array(rest + [0.0] * par_no * 5, dtype='f8').reshape(6, par_no)  # Initial dynamical state
+    tar1 = Target(4.0, ctarget)  # Phoned consonant
+    tarpp = tar1.makeNonPhonatory(10.0)  # Consonant approach
     # 7ms for /l/, 15ms for /b/, /d/, /g/, and /r/, 25ms for /m/ and /n/
-    T2 = 25.0  # Time constant for vowel approach
-    T3 = 10.0  # Time constant for relaxation
-    tarnp = vtarget + [0.0, 0.00015, 0.00015, 120.0]
-    TNP = 4.0
-    # plan = [(tar1, T1)]
-    # plan = [(tar1, T1), (tarp, TP), (tar2, T2), (tarnp, TNP), (s0, T3)]
-    plan = [(tar1, T1), (tarp, TP), (tar2, T2), (tarp, T1), (tar2, T2), (tarnp, TNP), (s0, T3)]
+    tar2 = Target(25.0, vtarget)  # always 0.15 for vowel
+    tarnp = tar2.makeNonPhonatory(4.0)
+    trest = Target(10.0, rest)
+    plan = [tarpp, tar1, tar2, tarnp, trest]
     # Initialize MPP
     MPP = mpp.MotorPhonemePrograms(inits, plan, f_rate)
 
@@ -90,12 +84,12 @@ def testSyllable(VT, vtarget, vlabel, ctarget, clabel):
     np.set_printoptions(4, suppress=True)
 
     # TODO: if mc works, use it for "feedback" implementation since sensory channel knows timing and targets
-    frames = [np.array(s0, dtype='f8')]
+    frames = [np.array(rest, dtype='f8')]
     t = 0
     while True:
         curr = MPP.ttime()
         frames.append(curr)
-        VT.setState(PL.ParList(curr))
+        VT.setState(Target(curr))
         t += 1
         if (np.square(curr - MPP.current_target())).mean() < err:
             if not MPP.advance():
@@ -105,7 +99,7 @@ def testSyllable(VT, vtarget, vlabel, ctarget, clabel):
     plt = np.array(frames).T
     rem_idxs = [21, 22, 23, 27]
     plt = np.delete(plt, rem_idxs, axis=0)
-    s0 = np.delete(s0, rem_idxs)
+    s0 = np.delete(rest, rem_idxs)
     tar1 = np.delete(tar1, rem_idxs)
     tarp = np.delete(tarp, rem_idxs)
     tar2 = np.delete(tar2, rem_idxs)

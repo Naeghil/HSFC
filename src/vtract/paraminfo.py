@@ -36,14 +36,14 @@ class VTParametersInfo:
         vt.vtlGetTractParamInfo(tract_param_names, ctypes.byref(tract_param_min),
                                 ctypes.byref(tract_param_max), ctypes.byref(tract_param_neutral))
         # Store labels in the appropriate class variables
-        self.vlabels = tract_param_names.value.decode().split()
-        self.working_labels.extend(self.vlabels)
+        VTParametersInfo.vlabels = tract_param_names.value.decode().split()
+        VTParametersInfo.working_labels.extend(VTParametersInfo.vlabels)
 
         vtp_max = list(tract_param_max)
         vtp_min = list(tract_param_min)
         vtp_def = list(tract_param_neutral)
-        for i in range(len(self.vlabels)):
-            l = self.vlabels[i]
+        for i in range(len(VTParametersInfo.vlabels)):
+            l = VTParametersInfo.vlabels[i]
             self.__mins[l] = vtp_min[i]
             self.__defs[l] = vtp_def[i]
             self.__maxs[l] = vtp_max[i]
@@ -58,13 +58,13 @@ class VTParametersInfo:
                                   ctypes.byref(glottis_param_max), ctypes.byref(glottis_param_neutral))
 
         # Store labels in the appropriate class variables
-        self.glabels = glottis_param_names.value.decode().split()
-        self.working_labels.extend(['pressure', 'lower_rest_displacement', 'upper_rest_displacement', 'f0'])
+        VTParametersInfo.glabels = glottis_param_names.value.decode().split()
+        VTParametersInfo.working_labels.extend(['pressure', 'lower_rest_displacement', 'upper_rest_displacement', 'f0'])
         g_max = list(glottis_param_max)
         g_min = list(glottis_param_min)
         g_def = list(glottis_param_neutral)
-        for i in range(len(self.glabels)):
-            l = self.glabels[i]
+        for i in range(len(VTParametersInfo.glabels)):
+            l = VTParametersInfo.glabels[i]
             self.__mins[l] = g_min[i]
             self.__defs[l] = g_def[i]
             self.__maxs[l] = g_max[i]

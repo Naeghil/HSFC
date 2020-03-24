@@ -9,12 +9,15 @@
 # Licence:     <your licence>
 # -------------------------------------------------------------------------------
 import math
+
+import numpy as np
+
 from src.vtract.paraminfo import VTParametersInfo as PI
 import src.utils.paramlists as PL
 
 f_rate = 2000
 dur_s = .5
-no_frames = int(round(f_rate * dur_s))
+
 
 
 # Target movement candidates:
@@ -38,18 +41,14 @@ def cupolv(t):
     return 1 + (t - 1) ** 3
 
 
-def testDefault(vt):
-    print('Testing default position')
-    for t in range(no_frames):
-        vt.time(t, None, False)
-    vt.close(no_frames, 'defo')
+
 
 
 def testTargets(vt, target, t_label):
     print('Testing vowel target: ' + t_label)
-    s0 = vt.getState().asFrame()[0]
+    s0 = np.array(vt.getState().asFrame()[0]+[0.0, 0.0, 0.0, 0.0], dtype='f8')
     lb = PI.vlabels
-    dy = {lb[i]: round(target[i] - s0[i], 6) for i in range(len(lb))}
+    dy = np.array(target, dtype='f8') - s0
     # Parameters to test:
     t_max = 0.007  # s, time for articulation of vowel
     a_frames = int(round(f_rate * t_max))  # Frames for articulation of vowel

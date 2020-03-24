@@ -1,7 +1,7 @@
 # -------------------------------------------------------------------------------
 # Name:        motorcommand
-# Purpose:     inspired by the step-response idea in the Birkholz Papers TODO: actually pute citations
-#
+# Purpose:     inspired by the step-response idea in the Birkholz Papers, as
+#              mentioned in the Report 2.1.1
 # Author:      Roberto Sautto
 #
 # Created:     15/02/2020
@@ -21,32 +21,27 @@ class MotorCommand:
     N = 6  # The order of the differential system representing the command
 
     def __init__(self, target,  # The target of the command
-                 t_con,         # Time constant (in ms)
                  fn_t0,         # List of initial values (list of parameters) for the function and its derivatives
                  dt):           # Time increment
-        # Preparatory checks and conversions
-        if fn_t0 is None or \
-                (fn_t0.shape[0] is not self.N and
-                 fn_t0.shape[1] is not len(target)):
-            raise TypeError("Wrong number of initial parameters")
-        initial_values = np.array(fn_t0).reshape(self.N, len(target))
+
         # Instance variables:
-        self.p_no = len(target)  # Number of parameters in the target
+        self.target = target.asTargetParameters()  # Target to reach
+        self.a = target.effort  # Effort
+        self.p_no = self.target.shape[0]  # Number of parameters in the target
         self.c = np.empty((self.N, self.p_no), dtype='f8')  # Constants for the equation
         self.t = 0.0              # Internal time
-        self.a = -1.0/t_con  # Effort
         self.dt = dt
         self.target = np.array(target)  # Target to reach
 
-
-        # This assumes target is of the same length as the initial values, which should be so
-        # Calculate all the constants TODO: reference this procedure
-        self.c[0] = initial_values[0] - self.target     # c_0
+        # Calculate all the constants
+        if fn_t0 is None or fn_t0.shape is not (self.N, self.p_no):
+            raise TypeError("Wrong number of initial parameters")
+        self.c[0] = fn_t0[0] - self.target     # c_0
         for i in range(1, self.N):
             d = np.array([0.0]*self.p_no, dtype='f8')
             for k in range(i):
                 d += self.c[k] * (self.a**(i-k)) * fact(i) / fact(i-k)
-            cn = (initial_values[i] - d) / fact(i)
+            cn = (fn_t0[i] - d) / fact(i)
             self.c[i] = cn
 
     # The equation is capable of calculating any derivative (der) up to self.N

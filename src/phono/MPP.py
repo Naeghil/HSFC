@@ -9,26 +9,23 @@
 # Copyright:   (c) Roberto Sautto 2020
 # Licence:     <your licence>
 # -------------------------------------------------------------------------------
-import numpy as np
 import src.phono.motcommand as mc
 
 
 # A command is in terms of distance and effort, where effort is the inverse of the period
 class BirkholzMotorControl:
-    # TODO: see if everything will be converted in np arrays
-    def __init__(self, initial, command_list, frate=None):  # The latter is a list of tuples (target, time_costant)
+    # TODO: command_list will be a "Plan"
+    def __init__(self, initial, command_list, frate=None):
         self.__plan = command_list
-        self.__plan_index = 0
+        self.__progression = 0  # Index of the current command
         if frate is None:
             self.__dt = 1.0
         else:
             self.__dt = 1000.0/frate  # dt is in ms
+        self.__command = mc.MotorCommand(self.__plan[0], initial, self.__dt)
 
-        first = self.__plan[0]
-        self.__command = mc.MotorCommand(first[0], first[1], initial, self.__dt)
-
-    def addStep(self, target, time_constant):
-        self.__plan.append((target, time_constant))
+    def addStep(self, target):
+        self.__plan.append(target)
 
     # TODO: for testing purposes
     def ttime(self):
@@ -47,10 +44,10 @@ class BirkholzMotorControl:
 
     # TODO: consider making this private:
     def advance(self):
-        if self.__plan_index < len(self.__plan) - 1:
-            self.__plan_index += 1
-            new = self.__plan[self.__plan_index]
-            self.__command = mc.MotorCommand(new[0], new[1], self.__command.getFinalValues(), self.__dt)
+        if self.__progression < len(self.__plan) - 1:
+            self.__progression += 1
+            self.__command = mc.MotorCommand(self.__plan[self.__progression],
+                                             self.__command.getFinalValues(), self.__dt)
             return True
         return False
 
