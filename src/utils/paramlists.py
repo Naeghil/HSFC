@@ -103,3 +103,4 @@ class Target(WorkingParList):
     def makeNonPhonatory(self, t_constant):
         pp = Target(t_constant, self)
         super(Target, pp).update('pressure', 0.0)
+        return pp

@@ -65,7 +65,7 @@ def make_constants(inits, T, tar):
 
 def testSyllable(VT, rest, vtarget, vlabel, ctarget, clabel):
     print('Testing syllable: ' + clabel + "/" + vlabel)
-    # Settinf up plan; this is the responsibility of the higher level target
+    # Setting up plan; this is the responsibility of the higher level module MSP
     err: float = 0.04
     par_no = len(rest)
     inits = np.array(rest + [0.0] * par_no * 5, dtype='f8').reshape(6, par_no)  # Initial dynamical state
@@ -89,7 +89,7 @@ def testSyllable(VT, rest, vtarget, vlabel, ctarget, clabel):
     while True:
         curr = MPP.ttime()
         frames.append(curr)
-        VT.setState(Target(curr))
+        VT.setState(Target(1.0, curr))
         t += 1
         if (np.square(curr - MPP.current_target())).mean() < err:
             if not MPP.advance():
@@ -100,14 +100,13 @@ def testSyllable(VT, rest, vtarget, vlabel, ctarget, clabel):
     rem_idxs = [21, 22, 23, 27]
     plt = np.delete(plt, rem_idxs, axis=0)
     s0 = np.delete(rest, rem_idxs)
-    tar1 = np.delete(tar1, rem_idxs)
-    tarp = np.delete(tarp, rem_idxs)
-    tar2 = np.delete(tar2, rem_idxs)
+    tar1 = np.delete(tar1.asTargetParameters(), rem_idxs)
+    tar2 = np.delete(tar2.asTargetParameters(), rem_idxs)
     # Initial/Final: black
     # Consonant: blue
     # Phonation green
     # Vowel: red
-    plot.plot_all(plt, [s0, tar1, tarp, tar2], ['k', 'b', 'g', 'r'], len(frames))
+    plot.plot_all(plt, [s0, tar1, tar2], ['k', 'g', 'r'], len(frames))
     # i = 2
     # plot.plot(plt[i], [s0[i], tar1[i], tarp[i], tar2[i]], ['k', 'b', 'g', 'r'], plt[i].shape[0])
 #    '''

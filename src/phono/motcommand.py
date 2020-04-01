@@ -31,10 +31,9 @@ class MotorCommand:
         self.c = np.empty((self.N, self.p_no), dtype='f8')  # Constants for the equation
         self.t = 0.0              # Internal time
         self.dt = dt
-        self.target = np.array(target)  # Target to reach
 
         # Calculate all the constants
-        if fn_t0 is None or fn_t0.shape is not (self.N, self.p_no):
+        if fn_t0 is None or fn_t0.shape != (self.N, self.p_no):
             raise TypeError("Wrong number of initial parameters")
         self.c[0] = fn_t0[0] - self.target     # c_0
         for i in range(1, self.N):

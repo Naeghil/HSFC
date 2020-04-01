@@ -20,6 +20,7 @@ import src.vtract.expose as vtract
 import src.utils.paramlists as PL
 from src.phono.SPT import SomatoPhonemeTargets
 # from src.phono.MPP import MotorPhonemePrograms
+from src.syll.MSP import MotorSyllablePrograms
 import src.test.test as test
 
 
@@ -45,9 +46,6 @@ def main(details=False):
         PL.ParList.setIndexes(param_info.vlabels+param_info.glabels, param_info.working_labels)
         PL.State.validate = param_info.validate
 
-        print('Loading somatophoneme targets...')
-        spt = SomatoPhonemeTargets(0.0)
-
     except Exception as e:
         print('Loading configuration failed: ', e)
         sys.exit()
@@ -55,33 +53,37 @@ def main(details=False):
     # Initializations:
     vt = None
     try:
+        print('Loading somatophoneme targets...')
+        spt = SomatoPhonemeTargets(0.0)
+        print('Initializing Motor Programmer...')
+        msp = MotorSyllablePrograms(spt.targets)
+
         print('Initializing vocal tract...')
         # audiopath = conf['path'] + os.sep + 'Output' + os.sep
         vt = vtract.VocalTract(synthesizer, conf['fsynth'], param_info.getDefaults())
         if details: vt.display()
 
+
     except Exception as e:
-        print('Vocal Tract initialization failed: ', e)
+        print('Initialization failed: ', e)
         if vt:
             vt.close()
         sys.exit()
 
     # t_labels = ['a', 'e', 'i', 'o', 'u', 'E:', 'A', 'I', 'E', 'O', 'U', '@6']
-    c_labels = ['ll-labial-nas', 'll-labial-stop', 'll-labial-fric', 'tt-alveolar-nas', 'tt-alveolar-stop',
-                'tb-velar-nas', 'tt-alveolar-lat', 'tt-alveolar-fric', 'tt-postalveolar-fric', 'tb-palatal-fric',
-                'tb-velar-stop']
-    # Voiced/Voiceless?
-    # actual_consonants = ['m', 'b', 'v', 'n', 'd', 'gn', 'l', 's', 'gi', 'sh?', 'g']
 
-    # Tests
+
+    ''' Simple Tests
     # vttest.testDefault(vt)
     # i = 5
-    # vttest.testTargets(vt, spt.targets[t_labels[i]], t_labels[i])
-    vow = ['a', 'i', 'u']
+    # vttest.testTargets(vt, spt.targets[t_labels[i]], t_labels[i]) '''
+    ''' Syllable Test
+    # vow = ['a', 'i', 'u']
+    c_labels = ['m', 'b', 'v', 'n', 'd', 'N', 'l', 's', 'z', 'j\\', 'g']
     vi = 0
-    ci = 0
-    con = c_labels[ci] + '(' + vow[vi] + ')'
-    test.testSyllable(vt, spt.targets['rest'], spt.targets[vow[vi]], vow[vi], spt.targets[con], con)
+    ci = 1
+    con = c_labels[ci] + vow[vi]
+    test.testSyllable(vt, spt.targets['_'], spt.targets[vow[vi]], vow[vi], spt.targets[con], con) '''
 
     # Exit procedure:
     # vt.close()
