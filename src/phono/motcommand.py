@@ -23,7 +23,6 @@ class MotorCommand:
     def __init__(self, target,  # The target of the command
                  fn_t0,         # List of initial values (list of parameters) for the function and its derivatives
                  dt):           # Time increment
-
         # Instance variables:
         self.target = target.asTargetParameters()  # Target to reach
         self.a = target.effort  # Effort

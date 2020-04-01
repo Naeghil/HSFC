@@ -59,6 +59,12 @@ class Synthesizer:
         self.__gframes.extend(newFrame[1])
         self.__noframes += 1
 
+    # Empties the production frames and is ready to record a new utterance
+    def flush(self):
+        self.__gframes = []
+        self.__vframes = []
+        self.__noframes = 0
+
     # "to" included
     def __call__(self, start=0, to=None):
         if to is None:

@@ -27,7 +27,6 @@ def main(details=False):
 
     # t_labels = ['a', 'e', 'i', 'o', 'u', 'E:', 'A', 'I', 'E', 'O', 'U', '@6']
 
-
     ''' Simple Tests
     # vttest.testDefault(vt)
     # i = 5
@@ -39,6 +38,8 @@ def main(details=False):
     ci = 1
     con = c_labels[ci] + vow[vi]
     test.testSyllable(vt, spt.targets['_'], spt.targets[vow[vi]], vow[vi], spt.targets[con], con) '''
+
+    test.testMSP(orch, "mama")
 
 
 

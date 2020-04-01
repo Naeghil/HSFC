@@ -18,9 +18,6 @@ from src.utils.utils import outputAudio
 import src.utils.paramlists as pl
 from src.vtract.paraminfo import VTParametersInfo as PI
 
-# 'pressure' string
-p = 'pressure'
-
 
 class VocalTract:
     # Construction (check the prints for details):
@@ -38,7 +35,7 @@ class VocalTract:
 
     # Returns a copy of the current state
     def getState(self):
-        return self.__state
+        return self.__state.asTargetParameters()
 
     # TODO: for test purposes
     def setState(self, new):
@@ -61,10 +58,18 @@ class VocalTract:
         if vtin:
             self.__updateState(vtin)
 
+    # This function synthesizes the audio produced up to this moment
+    # and clears the synthesizer
+    def speak(self, label):
+        utterance = np.array(self.__synth(), dtype=np.int16)
+        self.__synth.flush()
+        outputAudio(self.__audiopath, label, self.__synth.audio_sampling_rate, utterance)
+        return utterance
+
     def close(self, t=None, label=None):
         # Produce the overall audio output before closing:
         if t and t - self.__next_frame is not 0:
             self.__audio = np.append(self.__audio, self.__synth(self.__next_frame, t))
-            outputAudio(self.__audiopath, label, self.__synth.audio_sampling_rate, self.__audio)
+
         # Needed because of the ctypes and internal states:
         if self.__synth: self.__synth.close()

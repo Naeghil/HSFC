@@ -21,12 +21,12 @@ class MotorSyllablePrograms:
         self.targets = targets_reference
 
     # This processes the input word to translate the "problematic" combinations of letters
-    def __toLabels(self, in_list):
+    @staticmethod
+    def __toLabels(in_list):
         ret = []
         i = 0
         max = len(in_list)-1
         while i <= max:
-            print(in_list[i])
             if in_list[i] == 'g' and i < max:
                 # Processes possibilities for "gn"->N, "gli"->"j\\i", "gi, ge"->"zi, ze", "ghi, ghe" -> "gi, ge"
                 if in_list[i+1] == 'n':
@@ -54,22 +54,26 @@ class MotorSyllablePrograms:
             else:
                 ret.append(in_list[i])
             i += 1
-            print(ret)
 
         return ret
 
-    def __makeCommandList(self, labels_list):
-        plan = [Target(labels_list[0], 5.0)]  # Vocalization target
+    # TODO: this assumes only (CV)* words are produced; syllable division would be required otherwise
+    def __makeCommandList(self, c_lab):
+        f_lab = c_lab[0]
+        if f_lab not in self.vowels:
+            f_lab += c_lab[1]
+        plan = [Target(5.0, self.targets[f_lab])]  # Vocalization target
         plan.insert(0, plan[0].makeNonPhonatory(10.0))  # Prevocalization target
-        # TODO: this assumes only (CV)* words are produced; syllable division would be required otherwise
-        for i in range(1, len(labels_list)):
-            if labels_list[i] in self.vowels:
+        for i in range(1, len(c_lab)):
+            if c_lab[i] in self.vowels:
                 # The constant time (and thus effort) for a vowel target depends on the consonant preceding it
-                plan.append(Target(self.constant_times.get(labels_list[i-1], 15.0), self.targets[i]))
+                plan.append(Target(self.constant_times.get(c_lab[i-1], 15.0), self.targets[c_lab[i]]))
             else:
                 # Without further data from literature, the constant time for consonant targets is hand-tuned
                 # This will most likely affect vowel length, but what is the cost for the articulated consonant?
-                plan.append(Target(15.0, self.targets[i]))
+                # TODO: at the moment words can only end with vowels; when they don't,
+                #  the coarticulation target should be @
+                plan.append(Target(15.0, self.targets[c_lab[i]+c_lab[i+1]]))
 
         plan.append(plan[-1].makeNonPhonatory(5.0))
         plan.append(Target(10.0, self.targets['_']))  # Relaxation
@@ -77,5 +81,4 @@ class MotorSyllablePrograms:
 
     def makePlan(self, conc_input):
         in_labels = self.__toLabels(list(conc_input))
-        print(in_labels)
-
+        return self.__makeCommandList(in_labels)

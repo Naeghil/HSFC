@@ -9,53 +9,59 @@
 # Copyright:   (c) Roberto Sautto 2020
 # Licence:     <your licence>
 # -------------------------------------------------------------------------------
+import numpy as np
+
 import src.phono.motcommand as mc
+from src.utils.paramlists import Target
 
 
-# A command is in terms of distance and effort, where effort is the inverse of the period
 class BirkholzMotorControl:
-    # TODO: command_list will be a "Plan"
-    def __init__(self, initial, command_list, frate=None):
-        self.__plan = command_list
-        self.__progression = 0  # Index of the current command
-        if frate is None:
-            self.__dt = 1.0
-        else:
-            self.__dt = 1000.0/frate  # dt is in ms
-        self.__command = mc.MotorCommand(self.__plan[0], initial, self.__dt)
+    def __init__(self, i_state, frate=1000.0):
+        self.__plan = []
+        self.__progression = -1  # Index of the current command
+        self.__dt = 1000.0/frate  # dt is in ms
+        self.__max_error = 0.1  # TODO: maybe pass this to the constructor or is it command-dependent?
+        # Initialize the command as a "static" command, by using the initial state as target
+        initial_dstate = \
+            np.array(list(i_state) + [0.0] * len(i_state) * (mc.MotorCommand.N-1), dtype='f8')\
+                .reshape(mc.MotorCommand.N, len(i_state))
+        self.__command = mc.MotorCommand(Target(10.0, i_state), initial_dstate, self.__dt)
 
-    def addStep(self, target):
-        self.__plan.append(target)
+    # This calculates the error as MSQ
+    # TODO: consider different kinds of errors, e.g. percentage
+    def __error(self, state):
+        return (np.square(state - self.__command.target)).mean()
 
-    # TODO: for testing purposes
-    def ttime(self):
-        return self.__command.y()
-
-    # TODO: for testing purposes
-    def current_target(self):
-        return self.__command.target
-
-    def time(self):
-        acc = self.__command.time()
-        # if end and len(self.__plan) is not 0:
-        # TODO: advancement conditions
-        # If there is no more commands it means the VT should keep approaching the target
-        return acc
-
-    # TODO: consider making this private:
-    def advance(self):
+    # Advances to the next command in the plan, if available
+    # Returns True if the plan has been executed fully, false if there's steps left
+    def __advance(self):
         if self.__progression < len(self.__plan) - 1:
             self.__progression += 1
             self.__command = mc.MotorCommand(self.__plan[self.__progression],
                                              self.__command.getFinalValues(), self.__dt)
-            return True
-        return False
+            return False
+        return True
 
-    def stopMotorActivation(self):
-        self.__plan = []
-        tar = self.__command.getFinalValues()
-        self.__command = mc.MotorCommand(tar, 1.0, tar)
+    def addPlan(self, targets):
+        self.__plan += targets
+        self.__advance()
+
+    # This function moves the command along as trajectories
+    # i.e. calculates the 0th derivative of the system
+    def ttime(self, state):
+        end = False
+        if self.__error(state) < self.__max_error:
+            end = self.__advance()
+        return end, self.__command.y()
+
+    # This function moves the command along by calculating instantaneous acceleration
+    def time(self, state):
+        end = False
+        if self.__error(state) < self.__max_error:
+            end = self.__advance()
+        acc = self.__command.time()
+        return end, acc
 
 
-# Change this to change the approach:
+# This is here because there were meant to be multiple kinds of MPP:
 MotorPhonemePrograms = BirkholzMotorControl

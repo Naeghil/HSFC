@@ -10,7 +10,7 @@
 # -------------------------------------------------------------------------------
 import numpy as np
 
-from src.test.test import plot
+from src.utils.utils import plot
 from src.vtract.paraminfo import VTParametersInfo as PI
 import src.utils.paramlists as PL
 
@@ -37,7 +37,7 @@ def testDefault(orch):
 def testTargets(orch, target, t_label):
     vt = orch.vt
     print('Testing vowel target: ' + t_label)
-    s0 = vt.getState().asTargetParameters()
+    s0 = vt.getState()
     lb = PI.vlabels
     dy = np.array(target, dtype='f8') - s0
     # Parameters to test:
@@ -64,7 +64,7 @@ def testTargets(orch, target, t_label):
 
         vtin = PL.Velocity(v)
         vt.time(t, vtin, False)
-        trajectory.append(vt.getState().asTargetParameters())
+        trajectory.append(vt.getState())
 
     plt = np.array(trajectory).T
     rem_idxs = [21, 22, 23, 27]
