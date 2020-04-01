@@ -12,6 +12,8 @@
 import os
 import sys
 from src.utils.utils import extractFileInfo
+import src.utils.paramlists as PL
+from src.vtract.expose import Synthesizer
 
 
 def localPath():
@@ -36,3 +38,21 @@ def loadConfig(path):
             'frate': int(c_info[3]),  # The frame rate
             'fsynth': int(c_info[4])}  # The synth rate
     return conf
+
+
+def preliminaryInitialization(path, details):
+    print('Loading configuration...')
+    conf = loadConfig(path)
+    # Even though this is not a configuration,
+    # the api requires to be initialized before
+    # parameters information can be extracted
+    print('Initializing syntesizer...')
+    synthesizer = Synthesizer(conf['apipath'], conf['speaker'], conf['frate'])
+    if details: synthesizer.display()
+    print('Loading parameters information...')
+    param_info = synthesizer.getParametersInfo()
+    if details: param_info.display()
+    print('  Initializing parameters lists...')
+    PL.ParList.setIndexes(param_info.vlabels + param_info.glabels, param_info.working_labels)
+    PL.State.validate = param_info.validate
+    return conf, synthesizer, param_info
