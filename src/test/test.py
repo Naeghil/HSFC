@@ -30,11 +30,11 @@ def testMSP(orch: Orchestrator, in_str):
         orch.vt.setState(Target(1.0, new))
         t += 1
         if end:
+            plt = np.array(frames).T
+            rem_idxs = [21, 22, 23, 27]
+            plt = np.delete(plt, rem_idxs, axis=0)
+            plot.plot_all(plt, [], [], len(frames))
             orch.speak()
             break
 
-    plt = np.array(frames).T
-    rem_idxs = [21, 22, 23, 27]
-    plt = np.delete(plt, rem_idxs, axis=0)
-    plot.plot_all(plt, [], [], len(frames))
     orch.terminate()

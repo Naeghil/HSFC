@@ -72,7 +72,7 @@ class Synthesizer:
 
         # Parameters of the synthesis
         no_frames = to - start + 1
-        duration_s = float(no_frames) / float(self.frame_rate)
+        duration_s = float(no_frames) / float(self.frame_rate/10)
         tube_areas = (ctypes.c_double * (no_frames * self.number_tube_sections))()
         tube_articulators = ctypes.c_char_p(b' ' * no_frames * self.number_tube_sections)
         number_audio_samples = ctypes.c_int(0)
@@ -87,7 +87,7 @@ class Synthesizer:
         # Call the synthesis function. It may calculate a few seconds.
         failure = self.api.vtlSynthBlock(ctypes.byref(tract_params), ctypes.byref(glottis_params),  # inputs
                                          ctypes.byref(tube_areas), tube_articulators,  # outputs
-                                         no_frames, ctypes.c_double(self.frame_rate),  # inputs
+                                         no_frames, ctypes.c_double(self.frame_rate/10),  # inputs
                                          ctypes.byref(audio), ctypes.byref(number_audio_samples))  # outputs
         if failure != 0: raise ValueError('Error in vtlSynthBlock! Errorcode: %i' % failure)
 

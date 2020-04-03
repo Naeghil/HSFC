@@ -27,20 +27,22 @@ def main(details=False):
 
     # t_labels = ['a', 'e', 'i', 'o', 'u', 'E:', 'A', 'I', 'E', 'O', 'U', '@6']
 
+    vow = ['a', 'i', 'u']
     ''' Simple Tests
     # vttest.testDefault(vt)
     # i = 5
     # vttest.testTargets(vt, spt.targets[t_labels[i]], t_labels[i]) '''
     ''' Syllable Test
-    # vow = ['a', 'i', 'u']
-    c_labels = ['m', 'b', 'v', 'n', 'd', 'N', 'l', 's', 'z', 'j\\', 'g']
+    c_labels = ['m', 'b', 'v', 'n', 'd', 'l', 'z', 'j\\', 'g']
     vi = 0
     ci = 1
     con = c_labels[ci] + vow[vi]
     test.testSyllable(vt, spt.targets['_'], spt.targets[vow[vi]], vow[vi], spt.targets[con], con) '''
 
-    test.testMSP(orch, "mama")
-
+    c_graphemes = ['m', 'b', 'v', 'n', 'd', 'l', 'z', 'gli', 'g']
+    v = 2
+    istr = "".join(c+vow[v]+c+vow[v]+'_' for c in c_graphemes)
+    test.testMSP(orch, "ma_mi_mu")
 
 
 if __name__ == '__main__':
