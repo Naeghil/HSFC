@@ -21,30 +21,15 @@ from src.vtract.paraminfo import VTParametersInfo as PI
 
 class VocalTract:
     # Construction (check the prints for details):
-    def __init__(self, synth, f_synth, initial_state, audio_path="./"):
+    def __init__(self, synth, q_red, initial_state, audio_path="./"):
         self.__synth = synth  # The synthesizer
-        self.__fsynth = f_synth  # States synthesized together
+        self.__qred = q_red  # Only 1 in q_red states are actually "dumped" in the synthesizer
         init_state = list(initial_state[k] for k in PI.vlabels+PI.glabels)
         self.__state = pl.State(init_state)  # Current state, initialized as the neutral values
         self.__next_frame = 0  # Next frame to synthesize
         self.__audio = np.empty(0, np.int16)  # Generated audio
         self.__audiopath = audio_path  # Folder in which audio is output
-        self.counter = 0
-
-    def display(self):
-        print(self.__state.asString())
-
-    # Returns a copy of the current state
-    def getState(self):
-        return self.__state.asTargetParameters()
-
-    # TODO: for test purposes
-    def setState(self, new):
-        if self.counter % 10 == 0:
-            self.__synth.dump(self.__state.asFrame())
-        self.counter += 1
-        for k in PI.working_labels:
-            self.__state.update(k, new.get(k))
+        self.counter = 0  # Used to decide which states are dumped in the synthesizer
 
     # In a perfect world, this would return orosensory information, but I'm not sure how to do that
     def __updateState(self, vel):
@@ -52,13 +37,22 @@ class VocalTract:
             new = vel.get(k) + (self.__state.get(k))
             self.__state.update(k, new)
 
-    def time(self, t, vtin=None, partialSynth=True):
-        if self.counter % 10 == 0:
+    # Returns a copy of the current state
+    def getState(self):
+        return self.__state.asTargetParameters()
+
+    # Trajectory-based alternative for the time() function
+    def setState(self, new):
+        if self.counter % self.__qred == 0:
+            self.__synth.dump(self.__state.asFrame())
+        self.counter += 1
+        for k in PI.working_labels:
+            self.__state.update(k, new.get(k))
+
+    # Advances the "time" thus updating the state depending on the current velocity
+    def time(self, vtin=None):
+        if self.counter % self.__qred == 0:
             self.__synth.dump(self.__state.asFrame())  # Save the current state as a frame
-        f_left = t - self.__next_frame + 1
-        if partialSynth and (f_left >= self.__fsynth):
-            self.__synth(self.__next_frame, t)
-            self.__next_frame = t + 1
         if vtin:
             self.__updateState(vtin)
 
@@ -73,6 +67,6 @@ class VocalTract:
         outputAudio(self.__audiopath, dt+label, self.__synth.audio_sampling_rate, utterance)
         return utterance
 
-    def close(self, t=None, label=None):
+    def close(self):
         # Needed because of the ctypes and internal states:
         if self.__synth: self.__synth.close()

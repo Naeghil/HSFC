@@ -8,10 +8,7 @@
 # Copyright:   (c) Naeghil 2020
 # Licence:     <your licence>
 # -------------------------------------------------------------------------------
-
-
 import os
-import sys
 
 # Assumes src is in the same folder as main.py
 from src.orchestrator.orchestrator import Orchestrator
@@ -40,9 +37,10 @@ def main(details=False):
     test.testSyllable(vt, spt.targets['_'], spt.targets[vow[vi]], vow[vi], spt.targets[con], con) '''
 
     c_graphemes = ['m', 'b', 'v', 'n', 'd', 'l', 'z', 'gli', 'g']
-    v = 2
-    istr = "".join(c+vow[v]+c+vow[v]+'_' for c in c_graphemes)
-    test.testMSP(orch, "ma_mi_mu")
+    v = 0
+    #istr = "".join(c+vow[v]+c+vow[v]+('' if c == 'g' else '_') for c in c_graphemes)
+    istr = "".join(c+vow[v]+('' if c == 'g' else '_') for c in c_graphemes)
+    test.testMSP(orch, "da_di_du")
 
 
 if __name__ == '__main__':

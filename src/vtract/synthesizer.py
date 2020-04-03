@@ -16,15 +16,16 @@ from src.vtract.paraminfo import VTParametersInfo
 
 class Synthesizer:
     # Construction (check the prints for details):
-    def __init__(self, apipath, speaker, f_rate):
+    def __init__(self, apipath, speaker, f_rate, q_red):
         print('  Loading VocalTractLabApi binary...')
         self.api = ctypes.cdll.LoadLibrary(apipath)
+        # Parameters of the synthesizer
         self.audio_sampling_rate = 0  # Of the synthesizer
         self.number_tube_sections = 0  # Of the articulatory model
         self.vtp_no = 0  # Number of VT parameters
         self.gp_no = 0  # Number of glottis parameters
-        self.frame_rate = f_rate  # States "captured" per second of audio
-
+        self.frame_rate = int(f_rate/q_red)  # Synthesized frames per second of audio
+        # Frames to be synthesized:
         self.__gframes = []  # Past (glottal) states ready to synthesize
         self.__vframes = []  # Past (vocal) states ready to syntheisze
         self.__noframes = 0  # Number of currently stored frames
@@ -52,7 +53,7 @@ class Synthesizer:
     def display(self):
         print('    Audio sampling rate: ' + str(self.audio_sampling_rate))
         print('    Number of parameters vocal/glottis: ' + str(self.vtp_no) + '/' + str(self.gp_no))
-        print('    Frame Rate: ' + str(self.frame_rate) + 'Hz')
+        print('    Synthesis Frame Rate: ' + str(self.frame_rate) + 'Hz')
 
     def dump(self, newFrame):
         self.__vframes.extend(newFrame[0])
@@ -72,7 +73,7 @@ class Synthesizer:
 
         # Parameters of the synthesis
         no_frames = to - start + 1
-        duration_s = float(no_frames) / float(self.frame_rate/10)
+        duration_s = float(no_frames) / float(self.frame_rate)
         tube_areas = (ctypes.c_double * (no_frames * self.number_tube_sections))()
         tube_articulators = ctypes.c_char_p(b' ' * no_frames * self.number_tube_sections)
         number_audio_samples = ctypes.c_int(0)
@@ -87,7 +88,7 @@ class Synthesizer:
         # Call the synthesis function. It may calculate a few seconds.
         failure = self.api.vtlSynthBlock(ctypes.byref(tract_params), ctypes.byref(glottis_params),  # inputs
                                          ctypes.byref(tube_areas), tube_articulators,  # outputs
-                                         no_frames, ctypes.c_double(self.frame_rate/10),  # inputs
+                                         no_frames, ctypes.c_double(self.frame_rate),  # inputs
                                          ctypes.byref(audio), ctypes.byref(number_audio_samples))  # outputs
         if failure != 0: raise ValueError('Error in vtlSynthBlock! Errorcode: %i' % failure)
 

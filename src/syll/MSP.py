@@ -72,7 +72,12 @@ class MotorSyllablePrograms:
                 # This will most likely affect vowel length, but what is the cost for the articulated consonant?
                 # TODO: at the moment words can only end with vowels; when they don't,
                 #  the coarticulation target should be @
-                plan.append(Target(15.0, self.targets[c_lab[i]+c_lab[i+1]]))
+                next_vowel = 'a'  # TODO should be @
+                for k in range(i+1, len(c_lab)):
+                    if c_lab[k] in self.vowels:
+                        next_vowel = c_lab[k]
+                        break
+                plan.append(Target(15.0, self.targets[c_lab[i]+next_vowel]))
 
         plan.append(plan[-1].makeNonPhonatory(10.0))
         plan.append(Target(10.0, self.targets['_']))  # Relaxation

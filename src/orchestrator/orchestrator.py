@@ -35,7 +35,7 @@ class Orchestrator:
             self.msp = MotorSyllablePrograms(self.spt.targets)
             print('  Initializing vocal tract...')
             # audiopath = conf['path'] + os.sep + 'Output' + os.sep
-            self.vt = vtract.VocalTract(synth, conf['fsynth'], self.param_info.getDefaults())
+            self.vt = vtract.VocalTract(synth, conf['qred'], self.param_info.getDefaults())
             print('  Initializing motor controller...')
             s0 = self.vt.getState()
             self.mpp = phono.MotorPhonemePrograms(s0, conf['frate'])

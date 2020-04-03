@@ -36,7 +36,7 @@ def loadConfig(path):
             'speaker':  # Full path to the speaker file
                 path + c_info[1] + c_info[2],
             'frate': int(c_info[3]),  # The frame rate
-            'fsynth': int(c_info[4])}  # The synth rate
+            'qred': int(c_info[4])}  # The quality reduction
     return conf
 
 
@@ -47,7 +47,7 @@ def preliminaryInitialization(path, details):
     # the api requires to be initialized before
     # parameters information can be extracted
     print('Initializing syntesizer...')
-    synthesizer = Synthesizer(conf['apipath'], conf['speaker'], conf['frate'])
+    synthesizer = Synthesizer(conf['apipath'], conf['speaker'], conf['frate'], conf['qred'])
     if details: synthesizer.display()
     print('Loading parameters information...')
     param_info = synthesizer.getParametersInfo()
