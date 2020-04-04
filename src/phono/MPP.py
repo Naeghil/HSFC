@@ -9,6 +9,8 @@
 # Copyright:   (c) Roberto Sautto 2020
 # Licence:     <your licence>
 # -------------------------------------------------------------------------------
+import copy
+
 import numpy as np
 
 import src.phono.motcommand as mc
@@ -30,7 +32,7 @@ class BirkholzMotorControl:
     # This calculates the error as MSQ
     # TODO: consider different kinds of errors, e.g. percentage
     def __error(self, state):
-        return (np.square(state - self.__command.target)).mean()
+        return np.square(state - self.__command.target).mean()
 
     # Advances to the next command in the plan, if available
     # Returns True if the plan has been executed fully, false if there's steps left
@@ -45,6 +47,9 @@ class BirkholzMotorControl:
     def addPlan(self, targets):
         self.__plan += targets
         self.__advance()
+
+    def getCurrentTarget(self):
+        return copy.deepcopy(self.__command.target)
 
     # This function moves the command along as trajectories
     # i.e. calculates the 0th derivative of the system

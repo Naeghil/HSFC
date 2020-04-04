@@ -21,6 +21,7 @@ class ParList(object):
 
     @staticmethod
     def setIndexes(all_labels, working_labels):
+        print(working_labels)
         ParList._al_indexes = {all_labels[idx]: idx for idx in range(len(all_labels))}
         ParList._wl_indexes = {working_labels[idx]: idx for idx in range(len(working_labels))}
 
@@ -52,7 +53,6 @@ class ParList(object):
                     for k in self._idx.keys())
         return ' '.join(info)
 
-    # TODO: to be used later
     def asTargetParameters(self):
         return np.array(list(self._parameters[self._idx[k]] for k in PI.working_labels), 'f8')
 

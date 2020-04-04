@@ -40,7 +40,7 @@ def main(details=False):
     v = 0
     #istr = "".join(c+vow[v]+c+vow[v]+('' if c == 'g' else '_') for c in c_graphemes)
     istr = "".join(c+vow[v]+('' if c == 'g' else '_') for c in c_graphemes)
-    test.testMSP(orch, "da_di_du")
+    test.testMSP(orch, "baba")
 
 
 if __name__ == '__main__':

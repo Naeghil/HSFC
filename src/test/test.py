@@ -20,22 +20,14 @@ def testMSP(orch: Orchestrator, in_str):
     orch.current_utterance = in_str
     plan = orch.msp.makePlan(in_str)
     orch.mpp.addPlan(plan)
+    orch.targets_log = list(t.asTargetParameters() for t in plan)
 
     np.set_printoptions(4, suppress=True)
-    frames = []
-    t = 0
-    while True:
-        end, new = orch.mpp.ttime(orch.vt.getState())
-        frames.append(new)
-        orch.vt.setState(Target(1.0, new))
-        t += 1
-        if end:
-            if 1 == 0:  # Turn on/off the graphing function
-                plt = np.array(frames).T
-                rem_idxs = [21, 22, 23, 27]
-                plt = np.delete(plt, rem_idxs, axis=0)
-                plot.plot_all(plt, [], [], len(frames))
-            orch.speak()
+
+    for t in range(3000):
+        if orch.time():
+            if t == 2999:
+                orch.speak()
             break
 
     orch.terminate()

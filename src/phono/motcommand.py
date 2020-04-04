@@ -54,7 +54,7 @@ class MotorCommand:
         if der is 0: y += self.target
         return y
 
-    # TODO: for testing purposes
+    # Trajectory-based alternative to the time() function
     def y(self):
         self.t += self.dt
         return self.__y(self.t)

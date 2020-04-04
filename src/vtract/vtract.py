@@ -59,12 +59,15 @@ class VocalTract:
     # This function synthesizes the audio produced up to this moment
     # and clears the synthesizer
     def speak(self, label):
-        t0 = time.time()
+        # t0 = time.time()
         utterance = np.array(self.__synth(), dtype=np.int16)
-        t1 = time.time()
-        dt = str(int(t1-t0))+' - '
+        # t1 = time.time()
+        # dt = str(int(t1-t0))+' - '
+        dt = 'P=5.0-T=15.0-E=0.04 - '
+        #dt = ''
         self.__synth.flush()
         outputAudio(self.__audiopath, dt+label, self.__synth.audio_sampling_rate, utterance)
+        # outputAudio(self.__audiopath, label, self.__synth.audio_sampling_rate, utterance)
         return utterance
 
     def close(self):
