@@ -34,15 +34,15 @@ class Orchestrator:
         try:
             print('Initializing submodules...')
             print('  Loading somatophoneme targets...')
-            self.spt = phono.SomatoPhonemeTargets(0.0)
+            self.spt = phono.SomatoPhonemeTargets(conf['err'])
             print('  Initializing motor planner...')
-            self.msp = MotorSyllablePrograms(self.spt.targets)
+            self.msp = MotorSyllablePrograms(self.spt.targets, self.spt.vow_constants, self.spt.con_constants)
             print('  Initializing vocal tract...')
             # audiopath = conf['path'] + os.sep + 'Output' + os.sep
             self.vt = vtract.VocalTract(synth, conf['qred'], self.param_info.getDefaults())
             print('  Initializing motor controller...')
             s0 = self.vt.getState()
-            self.mpp = phono.MotorPhonemePrograms(s0, conf['frate'])
+            self.mpp = phono.MotorPhonemePrograms(s0, conf['frate'], self.spt.err)
 
         except Exception as e:
             print('Initialization failed: ', e)

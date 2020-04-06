@@ -18,19 +18,18 @@ from src.utils.paramlists import Target
 
 
 class BirkholzMotorControl:
-    def __init__(self, i_state, frate=1000.0):
+    def __init__(self, i_state, frate=1000.0, err=0.04):
         self.__plan = []
         self.__progression = -1  # Index of the current command
         self.__dt = 1000.0/frate  # dt is in ms
-        self.__max_error = 0.05  # TODO: maybe pass this to the constructor or is it command-dependent?
+        self.__max_error = err  # Maximum achievable error
         # Initialize the command as a "static" command, by using the initial state as target
         initial_dstate = \
             np.array(list(i_state) + [0.0] * len(i_state) * (mc.MotorCommand.N-1), dtype='f8')\
                 .reshape(mc.MotorCommand.N, len(i_state))
         self.__command = mc.MotorCommand(Target(10.0, i_state), initial_dstate, self.__dt)
 
-    # This calculates the error as MSQ
-    # TODO: consider different kinds of errors, e.g. percentage
+    # This calculates the error as Mean Square Error
     def __error(self, state):
         return np.square(state - self.__command.target).mean()
 

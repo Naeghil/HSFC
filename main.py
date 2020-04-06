@@ -41,7 +41,7 @@ def main(details=False):
     for c in c_graphemes:
         for v in vow:
             test.testMSP(orch, c+v)
-            test.testMSP(orch, c+v+c+v)
+            # test.testMSP(orch, c+v+c+v)
 
     orch.terminate()
 

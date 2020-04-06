@@ -13,3 +13,5 @@ JD2.speaker
 #Quality reduction: reduce the quality of audio (only synthesize 1 in n frames)
 #in order to speed up the synthesis. The default is 10.
 10
+# Maximum achievable error: error value to be reached before switching to the next motor command. Default is 0.04
+0.04

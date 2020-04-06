@@ -36,7 +36,8 @@ def loadConfig(path):
             'speaker':  # Full path to the speaker file
                 path + c_info[1] + c_info[2],
             'frate': int(c_info[3]),  # The frame rate
-            'qred': int(c_info[4])}  # The quality reduction
+            'qred': int(c_info[4]),  # The quality reduction
+            'err': float(c_info[5])}  # Maximum achievable error
     return conf
 
 

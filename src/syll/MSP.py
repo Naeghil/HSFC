@@ -16,16 +16,12 @@ class MotorSyllablePrograms:
     vowels = ['a', 'e', 'i', 'o', 'u']
     coart_vowels = ['a', 'i', 'u']
     consonants = ['m', 'b', 'v', 'n', 'd', 'l', 'z', 'j\\', 'g']
-    constant_times = {'l': 7.0, 'b': 15.0, 'd': 15.0, 'g': 15.0, 'm': 25.0, 'n': 25.0}
-    c_approach = 5.0  # Constant time for consonant approach
     vocalization = 15.0  # Constant time for vocalization
-    devocalization = 10.0  # Constant time for devocalization
-    # Following are the original constant times, as specified in
-    # "Modeling Consonant-Vowel Coarticulation for Articulatory Speech Synthesis"
-    # constant_times = {'l': 7.0, 'b': 15.0, 'd': 15.0, 'g': 15.0, 'm': 25.0, 'n': 25.0}
 
-    def __init__(self, targets_reference):
+    def __init__(self, targets_reference, vow_ct_reference, con_ct_reference):
         self.targets = targets_reference
+        self.vow_approach = vow_ct_reference
+        self.con_approach = con_ct_reference
 
     # This processes the input word to translate the "problematic" combinations of letters
     # NOTE: it's entirely possible to give the system an already "translated" string
@@ -119,22 +115,24 @@ class MotorSyllablePrograms:
                 # The first syllable in each word must reach the first target and then vocalize it
                 if not plan:
                     first_lab = syll[0][0] + (syll[1] if syll[0][0] in self.consonants else '')
-                    first = Target(5.0, self.targets[first_lab])  # Vocalization target
-                    plan.append(first.makeNonPhonatory(self.vocalization))  # Prevocalization target
+                    # TODO: oh fk... P was not doing anything because it was always 5.0
+                    # first = Target(self.con_approach.get(syll[0][0], 5.0))  # Vocalization target
+                    first = Target(self.vocalization, self.targets[first_lab])  # Vocalization target
+                    plan.append(first.makeNonPhonatory(10.0))  # Prevocalization target
                     plan.append(first)
                     offset = 1
                 for i in range(offset, len(syll[0])):
                     if syll[0][i] in self.vowels:
                         # The constant time (and thus effort) for a vowel target depends on the consonant preceding it
-                        # If no consonant precedes it, this defaults to 15.0
-                        ct = self.constant_times.get(syll[0][i-1], 15.0)
+                        # If no consonant precedes it, this defaults to 10.0
+                        ct = self.vow_approach.get(syll[0][i-1], 10.0)
                         plan.append(Target(ct, self.targets[syll[0][i]]))
                     elif syll[0][i] in self.consonants:
                         coart_label = syll[0][i] + syll[1]
-                        plan.append(Target(self.c_approach, self.targets[coart_label]))
+                        plan.append(Target(self.con_approach.get(syll[0][i], 15.0), self.targets[coart_label]))
                     else:
                         raise ValueError("Unexpected target label: " + syll[0][i])
-            plan.append(plan[-1].makeNonPhonatory(self.devocalization))
+            plan.append(plan[-1].makeNonPhonatory(10.0))
             plan.append(Target(10.0, self.targets['_']))
             ret += plan
 
