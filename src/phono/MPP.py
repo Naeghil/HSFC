@@ -22,7 +22,7 @@ class BirkholzMotorControl:
         self.__plan = []
         self.__progression = -1  # Index of the current command
         self.__dt = 1000.0/frate  # dt is in ms
-        self.__max_error = 0.04  # TODO: maybe pass this to the constructor or is it command-dependent?
+        self.__max_error = 0.05  # TODO: maybe pass this to the constructor or is it command-dependent?
         # Initialize the command as a "static" command, by using the initial state as target
         initial_dstate = \
             np.array(list(i_state) + [0.0] * len(i_state) * (mc.MotorCommand.N-1), dtype='f8')\

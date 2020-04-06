@@ -18,7 +18,7 @@ class MotorSyllablePrograms:
     consonants = ['m', 'b', 'v', 'n', 'd', 'l', 'z', 'j\\', 'g']
     constant_times = {'l': 7.0, 'b': 15.0, 'd': 15.0, 'g': 15.0, 'm': 25.0, 'n': 25.0}
     c_approach = 5.0  # Constant time for consonant approach
-    vocalization = 10.0  # Constant time for vocalization
+    vocalization = 15.0  # Constant time for vocalization
     devocalization = 10.0  # Constant time for devocalization
     # Following are the original constant times, as specified in
     # "Modeling Consonant-Vowel Coarticulation for Articulatory Speech Synthesis"
@@ -43,12 +43,13 @@ class MotorSyllablePrograms:
                     # "gli" case:
                     if i < max-1 and in_list[i+1] == 'l' and in_list[i+2] == 'i':
                         ret.append('j\\')
-                        i += 1
                         # glia/gliu case
-                        if i < max-2 and in_list[i+3] in self.coart_vowels:
-                            i += 1
-                        else:
-                            raise ValueError("Unexpected combination for 'gl'")
+                        if i < max-2:
+                            if in_list[i+3] in ['a', 'u', 'i']:
+                                i += 1
+                            else:
+                                raise ValueError("Unexpected combination for 'gl'"+in_list[i+3])
+                        i += 1
                     # ghi/ghe case
                     elif i < max-1 and in_list[i+1] == 'h':
                         if in_list[i+2] in ['i']:

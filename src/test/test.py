@@ -9,8 +9,6 @@
 # Licence:     <your licence>
 # -------------------------------------------------------------------------------
 from src.orchestrator.orchestrator import Orchestrator
-from src.utils.paramlists import Target
-from src.utils.utils import plot
 import numpy as np
 
 
@@ -24,10 +22,8 @@ def testMSP(orch: Orchestrator, in_str):
 
     np.set_printoptions(4, suppress=True)
 
-    for t in range(3000):
+    for t in range(4000):
         if orch.time():
-            if t == 2999:
+            if t == 3999:
                 orch.speak()
             break
-
-    orch.terminate()

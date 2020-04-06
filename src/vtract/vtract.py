@@ -63,10 +63,10 @@ class VocalTract:
         utterance = np.array(self.__synth(), dtype=np.int16)
         # t1 = time.time()
         # dt = str(int(t1-t0))+' - '
-        dt = 'P=5.0-T=15.0-E=0.04 - '
-        #dt = ''
+        dt = ' - P=15.0-CT=5.0-E=0.05'
+        # dt = ''
         self.__synth.flush()
-        outputAudio(self.__audiopath, dt+label, self.__synth.audio_sampling_rate, utterance)
+        outputAudio(self.__audiopath, label + dt, self.__synth.audio_sampling_rate, utterance)
         # outputAudio(self.__audiopath, label, self.__synth.audio_sampling_rate, utterance)
         return utterance
 

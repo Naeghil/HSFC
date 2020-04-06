@@ -38,9 +38,12 @@ def main(details=False):
 
     c_graphemes = ['m', 'b', 'v', 'n', 'd', 'l', 'z', 'gli', 'g']
     v = 0
-    #istr = "".join(c+vow[v]+c+vow[v]+('' if c == 'g' else '_') for c in c_graphemes)
-    istr = "".join(c+vow[v]+('' if c == 'g' else '_') for c in c_graphemes)
-    test.testMSP(orch, "baba")
+    for c in c_graphemes:
+        for v in vow:
+            test.testMSP(orch, c+v)
+            test.testMSP(orch, c+v+c+v)
+
+    orch.terminate()
 
 
 if __name__ == '__main__':

@@ -33,7 +33,6 @@ def testDefault(orch):
 # This tests that the VocalTract class can actually move the articulators,
 # by specifying a velocity, relative to a cubic polynomial trajectory
 # Success: target vowel is produced, plot consistent with trajectory
-# TODO: vtract must be able to plot its own shit
 def testTargets(orch, target, t_label):
     vt = orch.vt
     print('Testing vowel target: ' + t_label)

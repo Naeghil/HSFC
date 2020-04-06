@@ -90,7 +90,7 @@ class Orchestrator:
         self.targets_log.append(self.mpp.getCurrentTarget())
         self.vt.setState(Target(1.0, new))
         if end:
-            if 1 == 1:  # Turn on/off the graphing function
+            if 1 == 0:  # Turn on/off the graphing function
                 self.__plot()
             self.speak()
         return end
