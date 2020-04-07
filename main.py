@@ -11,16 +11,25 @@
 import os
 
 # Assumes src is in the same folder as main.py
+from queue import Queue
+
 from src.orchestrator.orchestrator import Orchestrator
 import src.test.test as test
 
 
 def main(details=False):
+    # Obtains the root path to the sourcecode, independently from where in the code it's starting
+    # BUG: it doesn't work if it's from outside the root directory of the code
     path = os.getcwd()
     while os.path.basename(path) != 'HSFC':
         path = os.path.normpath(path + os.sep + os.pardir)
 
-    orch = Orchestrator(path, details)
+    # Creates queue for user commands
+    toSay = Queue(0)
+    # Creates bucket for orchestrator's message passing
+    bucket = Queue(0)
+    # Creates the orchestrator
+    orch = Orchestrator(path, details, toSay, bucket)  # Raises Exception
 
     # t_labels = ['a', 'e', 'i', 'o', 'u', 'E:', 'A', 'I', 'E', 'O', 'U', '@6']
 

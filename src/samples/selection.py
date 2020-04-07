@@ -1,10 +1,11 @@
 # -------------------------------------------------------------------------------
-# Name:        main
-# Purpose:     Main module of the application
+# Name:        selection
+# Purpose:     Code used for the selection of sample candidates from
+#              the CoLFIS corpus
 #
 # Author:      Naeghil
 #
-# Created:     15/02/2020
+# Last mod:     07/04/2020
 # Copyright:   (c) Naeghil 2020
 # Licence:     <your licence>
 # -------------------------------------------------------------------------------
@@ -90,7 +91,7 @@ def main():
     # Write the resulting candidates to file
     candidates = open('../../resources/sample candidates.txt', 'w+')
     for lemma in lemmas:
-        candidates.write(lemma+'\n')
+        candidates.write(lemma.lower()+'\n')
 
     candidates.close()
 

@@ -81,7 +81,6 @@ class State(ParList):
 
 
 class WorkingParList(ParList):
-    @abstractmethod
     def __init__(self, init):
         super(WorkingParList, self).__init__()
         super(WorkingParList, self)._init(super(WorkingParList, self)._wl_indexes, init)

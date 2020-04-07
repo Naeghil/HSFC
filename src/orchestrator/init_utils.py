@@ -1,34 +1,30 @@
 # -------------------------------------------------------------------------------
 # Name:        init_utils
-# Purpose:     utility functions to declutter main.main()
+# Purpose:     Utility functions used in the initialization of the orchestrator
 #
 # Author:      Roberto Sautto
 #
-# Created:     05/03/2020
+# Last mod:    07/04/2020
 # Copyright:   (c) Roberto Sautto 2020
 # Licence:     <your licence>
 # -------------------------------------------------------------------------------
 
+# Global imports
 import os
 import sys
+# Local imports
 from src.utils.utils import extractFileInfo
 import src.utils.paramlists as PL
 from src.vtract.expose import Synthesizer
 
 
-def localPath():
-    path = os.getcwd()
-    while os.path.basename(path) != 'HSFC':
-        path = os.path.normpath(path + os.sep + os.pardir)
-    return path
-
-
+# Loads the configuration file, assuming it's not been moved
 def loadConfig(path):
-    c_info = extractFileInfo(path+os.sep+'config')
+    c_info = extractFileInfo(path+os.sep+'config')  # Raises FileNotFound
     if c_info is None:
         print('Loading configuration failed.')
         sys.exit()
-
+    # HARDCODED
     ext = '.dll' if sys.platform == 'win32' else '.so'
     conf = {'path': path,  # Path to the root of the application
             'apipath':  # Full path to the VTLAPI
@@ -41,12 +37,12 @@ def loadConfig(path):
     return conf
 
 
+# Pre-initialization configuration, initializes certain class variables
 def preliminaryInitialization(path, details):
     print('Loading configuration...')
-    conf = loadConfig(path)
-    # Even though this is not a configuration,
-    # the api requires to be initialized before
-    # parameters information can be extracted
+    conf = loadConfig(path)  # Raises FileNotFound
+    # Even though this is not a configuration, the api requires
+    # to be initialized before parameters information can be extracted
     print('Initializing syntesizer...')
     synthesizer = Synthesizer(conf['apipath'], conf['speaker'], conf['frate'], conf['qred'])
     if details: synthesizer.display()

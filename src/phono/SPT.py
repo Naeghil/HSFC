@@ -1,7 +1,8 @@
 # -------------------------------------------------------------------------------
 # Name:        Somato-Phonological Targets
-# Purpose:     Module producing a correction signal depending on
-#               current state and prediction
+# Purpose:     Originally meant as a feedback module, it now serves the purpose of
+#              "knowing" things about the parameters for each phoneme.
+#              It is essentially a data bag.
 #
 # Author:      Roberto Sautto
 #
@@ -10,22 +11,24 @@
 # Licence:     <your licence>
 # -------------------------------------------------------------------------------
 
+# Local imports
 import src.utils.utils as u
 
 
 class SomatoPhonemeTargets:
     def __init__(self, err):
         self.targets = {}  # Known targets
-        self.vow_constants = {}
-        self.con_constants = {}
-        self.err = err
+        self.vow_constants = {}  # Known constant times for vowels
+        self.con_constants = {}  # Known constant times for consonants
+        self.err = err  # Known maximum achievable error
 
-        # Targets as specified in VocalTractLabAPI and by Birkholz
-        targets_raw = u.extractFileInfo('src/phono/targets')
+        # Targets as specified in VocalTractLabAPI and by Birkholz (see Report)
+        targets_raw = u.extractFileInfo('src/phono/targets')  # Raises FileNotFound
         for i in range(int(len(targets_raw)/2)):
             self.targets[targets_raw[i*2]] = list(float(p) for p in targets_raw[i*2+1].split())
 
-        parameters_raw = u.extractFileInfo('src/phono/targetpars')
+        # Time constants (see targetpars file)
+        parameters_raw = u.extractFileInfo('src/phono/targetpars')  # Raises FileNotFound
         vow_const_raw = parameters_raw[0].split()
         con_const_raw = parameters_raw[1].split()
         # Constant times as specified by Birkholz
@@ -34,3 +37,5 @@ class SomatoPhonemeTargets:
         # Constant times as worked out in parameters testing
         for i in range(int(len(con_const_raw)/2)):
             self.vow_constants[con_const_raw[i*2]] = float(con_const_raw[i*2+1])
+
+# Tests are not being implemented for this module as it's merely a databag

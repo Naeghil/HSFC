@@ -14,6 +14,7 @@ from scipy.io import wavfile
 from datetime import datetime
 
 
+# Default method to extract information from HSFC's configuration and parameter files
 def extractFileInfo(path):
     with open(path) as i_file:
         # Extract non-blank lines
