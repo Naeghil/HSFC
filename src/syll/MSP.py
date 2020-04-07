@@ -40,8 +40,8 @@ class MotorSyllablePrograms:
                     if i < max-1 and in_list[i+1] == 'l' and in_list[i+2] == 'i':
                         ret.append('j\\')
                         # glia/gliu case
-                        if i < max-2:
-                            if in_list[i+3] in ['a', 'u', 'i']:
+                        if i < max-2 and in_list[i+3] in self.vowels:
+                            if in_list[i+3] in ['a', 'u']:
                                 i += 1
                             else:
                                 raise ValueError("Unexpected combination for 'gl'"+in_list[i+3])
@@ -115,9 +115,8 @@ class MotorSyllablePrograms:
                 # The first syllable in each word must reach the first target and then vocalize it
                 if not plan:
                     first_lab = syll[0][0] + (syll[1] if syll[0][0] in self.consonants else '')
-                    # TODO: oh fk... P was not doing anything because it was always 5.0
-                    # first = Target(self.con_approach.get(syll[0][0], 5.0))  # Vocalization target
-                    first = Target(self.vocalization, self.targets[first_lab])  # Vocalization target
+                    first = Target(self.con_approach.get(syll[0][0], 10.0),
+                                   self.targets[first_lab])  # Vocalization target
                     plan.append(first.makeNonPhonatory(10.0))  # Prevocalization target
                     plan.append(first)
                     offset = 1

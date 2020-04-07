@@ -34,14 +34,22 @@ def main(details=False):
     vi = 0
     ci = 1
     con = c_labels[ci] + vow[vi]
-    test.testSyllable(vt, spt.targets['_'], spt.targets[vow[vi]], vow[vi], spt.targets[con], con) '''
+    test.testSyllable(vt, spt.targets['_'], spt.targets[vow[vi]], vow[vi], spt.targets[con], con)
 
     c_graphemes = ['m', 'b', 'v', 'n', 'd', 'l', 'z', 'gli', 'g']
     v = 0
     for c in c_graphemes:
         for v in vow:
             test.testMSP(orch, c+v)
-            # test.testMSP(orch, c+v+c+v)
+            test.testMSP(orch, c+v+c+v)
+    
+
+    sel_syllables = ['ga', 'ba', 'da', 'di', 'za', 'zi', 'zu', 'glia', 'gli', 'gliu', 'ma',
+                     'mi', 'mu', 'na', 'ni', 'nu', 'la', 'li', 'lu', 'va', 'vi', 'vu']
+
+    for syll in sel_syllables:
+        test.testMSP(orch, syll)
+        test.testMSP(orch, syll+syll) '''
 
     orch.terminate()
 

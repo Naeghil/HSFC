@@ -3,4 +3,4 @@
 # The following are the parameters as specified by Birkholz, for vowel approach following a consonant
 l 7.0 b 15.0 d 15.0 g 15.0 m 25.0 n 25.0
 # The following are the parameters as worked out by testing, for generic consonant approach
-g 10.0 z 10.0 j\\ 10.0 m 10.0 n 12.5 l 10.0 b 10.0 d 15.0 v 12.5
+g 10.0 z 10.0 j\\ 5.0 m 10.0 n 12.5 l 10.0 b 10.0 d 15.0 v 12.5
