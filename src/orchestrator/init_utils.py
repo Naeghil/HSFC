@@ -20,7 +20,7 @@ from src.vtract.expose import Synthesizer
 
 # Loads the configuration file, assuming it's not been moved
 def loadConfig(path):
-    c_info = extractFileInfo(path+os.sep+'config')  # Raises FileNotFound
+    c_info = extractFileInfo(path+os.sep+'config')  # raises FileNotFound
     if c_info is None:
         print('Loading configuration failed.')
         sys.exit()
@@ -40,7 +40,7 @@ def loadConfig(path):
 # Pre-initialization configuration, initializes certain class variables
 def preliminaryInitialization(path, details):
     print('Loading configuration...')
-    conf = loadConfig(path)  # Raises FileNotFound
+    conf = loadConfig(path)  # raises FileNotFound
     # Even though this is not a configuration, the api requires
     # to be initialized before parameters information can be extracted
     print('Initializing syntesizer...')

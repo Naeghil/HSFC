@@ -30,7 +30,8 @@ class MotorPhonemePrograms:
         len_is = len(initial_state)
         initial_dstate = np.array(len_is + [0.0] * len_is * (MotorCommand.N-1), dtype='f8'
                                   ).reshape(MotorCommand.N, len_is)
-        self.__command = MotorCommand(WorkingParList(initial_state), initial_dstate, self.__dt)  # raises ValueError
+        self.__command = MotorCommand(WorkingParList(initial_state),  # raises UnrecoverableException
+                                      initial_dstate, self.__dt)  # raises UnrecoverableException
 
     # Calculates the distance from the target as Mean Square Error
     def __error(self, state):
@@ -43,14 +44,14 @@ class MotorPhonemePrograms:
             self.__progression += 1
             self.__command = MotorCommand(self.__plan[self.__progression],
                                           self.__command.getFinalValues(),
-                                          self.__dt)  # raises ValueError
+                                          self.__dt)  # raises UnrecoverableException
             return False
         return True
 
     # Adds a plan to the MPP, which is consumed at the next timeframe
     def addPlan(self, targets):
         self.__plan += targets
-        self.__advance()  # raises ValueError
+        self.__advance()  # raises UnrecoverableException
 
     # Used for logging purposes
     def getCurrentTarget(self):
@@ -63,7 +64,7 @@ class MotorPhonemePrograms:
         # Condition for plan advancement
         if self.__error(state) < self.__max_error:
             # end "requests" a new plan
-            end = self.__advance()  # raises ValueError
+            end = self.__advance()  # raises UnrecoverableException
         return end, self.__command.y()
 
     # This function was meant to control the vocal tract through velocity
@@ -71,7 +72,7 @@ class MotorPhonemePrograms:
     def vtime(self, state):
         end = False
         if self.__error(state) < self.__max_error:
-            end = self.__advance()  # raises ValueError
+            end = self.__advance()  # raises UnrecoverableException
         acc = self.__command.time()
         return end, acc
 

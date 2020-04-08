@@ -1,17 +1,28 @@
 # -------------------------------------------------------------------------------
 # Name:        utils
-# Purpose:     defines utilities to be used throughout the program
+# Purpose:     Utility code
 #
 # Author:      Roberto Sautto
 #
-# Created:     18/02/2020
+# Last mod:    8/04/2020
 # Copyright:   (c) Roberto Sautto 2020
 # Licence:     <your licence>
 # -------------------------------------------------------------------------------
 
-import matplotlib.pyplot as pl
+# Global imports
 from scipy.io import wavfile
 from datetime import datetime
+
+
+# Exception utilities:
+class UnrecoverableException(Exception):
+    def __init__(self, message=''):
+        super(UnrecoverableException, self).__init__(message)
+
+
+class RecoverableException(Exception):
+    def __init__(self, message=''):
+        super(RecoverableException, self).__init__(message)
 
 
 # Default method to extract information from HSFC's configuration and parameter files
@@ -24,35 +35,8 @@ def extractFileInfo(path):
         return info
 
 
+# Outputs audio to to file
 def outputAudio(path, label, sampling_rate, audio):
     a_file = path + (label if label else 'audio') +\
              ' - ' + datetime.now().strftime("%d-%m-%Y-%H.%M.%S") + '.wav'
     wavfile.write(a_file, sampling_rate, audio)
-
-
-class plot:
-    @staticmethod
-    def plot_all(data, tars, tar_cols, x_max):
-        # Initial/Final: black
-        # Consonant: green
-        # Vowel: red
-        fig = pl.figure()
-        par_no = data.shape[0]
-        for i in range(par_no):
-            sf = fig.add_subplot(6, 4, i+1)
-            sf.plot(data[i])
-            for idx in range(len(tars)):
-                sf.plot([tars[idx][i]] * x_max, tar_cols[idx])
-        pl.subplots_adjust(hspace=1.0)
-        pl.show()
-
-    @staticmethod
-    def plot(data, tars, tar_cols, x_max):
-        # Initial/Final: black
-        # Consonant: green
-        # Phonation blue
-        # Vowel: red
-        pl.plot(data)
-        for idx in range(len(tars)):
-            pl.plot([tars[idx]] * x_max, tar_cols[idx])
-        pl.show()

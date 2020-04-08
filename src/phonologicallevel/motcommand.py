@@ -18,6 +18,8 @@ import numpy as np
 from math import e as e
 from math import factorial as fact
 
+from src.utils.utils import UnrecoverableException
+
 
 class MotorCommand:
     N = 6  # The order of the differential system representing the command,
@@ -29,7 +31,7 @@ class MotorCommand:
 
         # Command variables:
         self.target = target.asTargetParameters()  # Target to reach
-        self.a = target.effort  # Effort
+        self.a = target.getEffort()  # Effort
         self.p_no = self.target.shape[0]  # Number of parameters in the target
         self.c = np.empty((self.N, self.p_no), dtype='f8')  # Constants for the equation
         self.t = 0.0  # Internal time, used in the equation
@@ -37,7 +39,7 @@ class MotorCommand:
 
         # Validation; any failure does not depend on user input here
         if fn_t0 is None or fn_t0.shape != (self.N, self.p_no):
-            raise ValueError("Wrong number of initial parameters when building the commands. This is a bug.")
+            raise UnrecoverableException("Wrong number of initial parameters when building the commands. This is a bug.")
 
         # Calculate all the constants, as specified in the paper
         self.c[0] = fn_t0[0] - self.target

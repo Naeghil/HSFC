@@ -23,12 +23,12 @@ class SomatoPhonemeTargets:
         self.err = err  # Known maximum achievable error
 
         # Targets as specified in VocalTractLabAPI and by Birkholz (see Report)
-        targets_raw = u.extractFileInfo('src/phono/targets')  # Raises FileNotFound
+        targets_raw = u.extractFileInfo('src/phonologicallevel/targets')  # raises FileNotFound, unrecoverable
         for i in range(int(len(targets_raw)/2)):
             self.targets[targets_raw[i*2]] = list(float(p) for p in targets_raw[i*2+1].split())
 
         # Time constants (see targetpars file)
-        parameters_raw = u.extractFileInfo('src/phono/targetpars')  # Raises FileNotFound
+        parameters_raw = u.extractFileInfo('src/phonologicallevel/targetpars')  # raises FileNotFound, unrecoverable
         vow_const_raw = parameters_raw[0].split()
         con_const_raw = parameters_raw[1].split()
         # Constant times as specified by Birkholz

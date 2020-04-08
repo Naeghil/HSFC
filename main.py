@@ -29,7 +29,7 @@ def main(details=False):
     # Creates bucket for orchestrator's message passing
     bucket = Queue(0)
     # Creates the orchestrator
-    orch = Orchestrator(path, details, toSay, bucket)  # Raises Exception
+    orch = Orchestrator(path, details, toSay, bucket)  # raises Exception, unrecoverable
 
     # t_labels = ['a', 'e', 'i', 'o', 'u', 'E:', 'A', 'I', 'E', 'O', 'U', '@6']
 
@@ -56,9 +56,9 @@ def main(details=False):
     sel_syllables = ['ga', 'ba', 'da', 'di', 'za', 'zi', 'zu', 'glia', 'gli', 'gliu', 'ma',
                      'mi', 'mu', 'na', 'ni', 'nu', 'la', 'li', 'lu', 'va', 'vi', 'vu']
 
-    for syll in sel_syllables:
-        test.testMSP(orch, syll)
-        test.testMSP(orch, syll+syll) '''
+    for syllablelevel in sel_syllables:
+        test.testMSP(orch, syllablelevel)
+        test.testMSP(orch, syllablelevel+syllablelevel) '''
 
     orch.terminate()
 

@@ -12,26 +12,28 @@
 # -------------------------------------------------------------------------------
 
 # Global imports
-from queue import Empty
-
+from queue import Empty, Queue
 import numpy as np
 from matplotlib import pyplot as pl
 from threading import Thread, Event
 # Local imports:
 from . import init_utils as init
 import src.vtract.expose as vtract
-import src.phono.expose as phono
-from src.syll.MSP import MotorSyllablePrograms
+import src.phonologicallevel.expose as phono
+from src.syllablelevel.MSP import MotorSyllablePrograms
 from ..utils.paramlists import WorkingParList
+from ..utils.utils import UnrecoverableException, RecoverableException
 
 
 class Orchestrator(Thread):
-    def __init__(self, path, details, production_queue, bucket):  # Essentially initializes all system submodules
+    def __init__(self, path, details, production_queue: Queue, bucket: Queue):  
+        # Essentially initializes all system submodules
         super(Orchestrator, self).__init__()
         try:
-            conf, synth, self.param_info = init.preliminaryInitialization(path, details)  # Raises FileNotFound
+            # raises FileNotFound, unrecoverable:
+            conf, synth, self.param_info = init.preliminaryInitialization(path, details)
         except Exception as e:
-            raise Exception('Loading configuration failed: \n'+str(e))
+            raise UnrecoverableException('Loading configuration failed: \n  '+str(e))
 
         # Components initialization:
         try:
@@ -46,9 +48,10 @@ class Orchestrator(Thread):
             self.__vt = vtract.VocalTract(synth, conf['qred'], self.param_info.getDefaults())
             print('  Initializing motor controller...')
             s0 = self.__vt.getState()
-            self.__mpp = phono.MotorPhonemePrograms(s0, conf['frate'], self.__spt.err)  # Raises ValueError
+            # raises ValueError, unrecoverable:
+            self.__mpp = phono.MotorPhonemePrograms(s0, conf['frate'], self.__spt.err)
         except Exception as e:
-            raise Exception('Initialization failed: \n'+str(e))
+            raise UnrecoverableException('Initialization failed: \n  '+str(e))
             if self.__vt:
                 self.__vt.close()
 
@@ -73,15 +76,23 @@ class Orchestrator(Thread):
     # Moves on to the next command if available, otherwise it waits
     def __commandSwitch(self):
         try:
+            # Extract next utterance
             self.__current_utterance = self.__toSay.get(timeout=1)
             self.__toSay.task_done()
-            plan = self.__msp.makePlan(self.__current_utterance)
-            self.__mpp.addPlan(plan)  # raises ValueError
+            try:
+                # Plan for next utterance
+                plan = self.__msp.makePlan(self.__current_utterance)  # raises RecoverableException
+                # Adds utterance to plan, creating the appropriate motor commands
+                self.__mpp.addPlan(plan)  # raises UnrecoverableException
+            except UnrecoverableException as e:
+                self.__bucket.put((True, "An error has been encountered while planning for " +
+                                   self.__current_utterance+':\n  '+str(e)))
+            except RecoverableException as e:
+                self.__bucket.put((False, "Unable to plan for " + self.__current_utterance +
+                                   " because:\n  "+str(e)))
+                self.__current_utterance = None  # Skip the utterance
         except Empty:
             pass  # This is only needed in case the user terminates the program while in wait
-        except ValueError as e:
-            self.__bucket.put((True, "An error has been encountered while planning for " +
-                               self.__current_utterance+':\n'+str(e)))
 
     # Merely a wrapper for the time function to avoid clogging the run() method
     def __safeTime(self, safe):
@@ -136,18 +147,19 @@ class Orchestrator(Thread):
         done = True
         try:
             # The motor phoneme program is executed
-            done, newState = self.__mpp.time(self.__vt.getState())  # raises ValueError
+            done, newState = self.__mpp.time(self.__vt.getState())  # raises UnrecoverableException
             # The results are logged
             self.__current_log.append(newState)
             self.__targets_log.append(self.__mpp.getCurrentTarget())
             # Vocal tract is updated: this is the actual vocal tract movement
-            self.__vt.setState(WorkingParList(newState))
+            self.__vt.time(
+                WorkingParList(newState))  # raises UnrecoverableException
             # End of the utterance
             if done:
                 if self.__displayPlot:
                     self.__plot().show()
                 self.speak()
-        except ValueError as e:
+        except UnrecoverableException as e:
             self.__bucket.put((True, "An error has been encountered while executing " +
                                self.__current_utterance + ':\n' + str(e)))
         return done  # This is needed when command switch is external (e.g. for testing purposes)
