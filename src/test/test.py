@@ -8,8 +8,21 @@
 # Copyright:   (c) Roberto Sautto 2020
 # Licence:     <your licence>
 # -------------------------------------------------------------------------------
+
 from src.orchestrator.orchestrator import Orchestrator
 import numpy as np
+
+
+- Do unit testing (BoundaryValue-Analysis, Equivalence partitioning)
+-- Command parsing
+- Do big-bang integration testing, essentially system testing
+-- System startup and termination
+-- Error handling
+--- Wrong commands
+--- Unacceptable utterances
+--- Files not found
+-- Sample synthesis
+- Acceptance testing is essentially evaluation
 
 
 # This tests the MSP integrated in the system

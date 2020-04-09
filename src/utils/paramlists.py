@@ -15,8 +15,8 @@
 import numpy as np
 from abc import abstractmethod
 # Local imports
-from src.utils.utils import UnrecoverableException
-from src.vtract.paraminfo import VTParametersInfo as PI
+from ..utils.utils import UnrecoverableException
+from ..vtract.paraminfo import VTParametersInfo as PI
 
 
 # This is an abstract class
@@ -29,7 +29,6 @@ class ParList(object):
     # Used to set the indexingg variables
     @staticmethod
     def setIndexes(all_labels, working_labels):
-        print(working_labels)
         ParList._al_indexes = {all_labels[idx]: idx for idx in range(len(all_labels))}
         ParList._wl_indexes = {working_labels[idx]: idx for idx in range(len(working_labels))}
 
@@ -51,46 +50,52 @@ class ParList(object):
                 len(init._parameters) == req_par:
             self._parameters = np.array(init._parameters, dtype='f8')
         # Construct a parameter list from np.array or list
-        elif isinstance(init, (np.ndarray, list)) and \
+        elif isinstance(init, (np.ndarray, list, )) and \
                 len(init) == req_par:
             self._parameters = np.array(init, dtype='f8')
         else:
+            print(type(init))
             # Cannot construct a parameter list from any other data type
             raise UnrecoverableException("The parameters list object could not be initialized. This is a bug.")
 
     # Returns the requested parameter, if exists
     def get(self, k, default=0.0):
         idx = self._idx.get(k, None)
-        return self._parameters[idx] if idx else default
+        return self._parameters[idx] if idx is not None else default
 
     # Returns a copy of only the working parameters, independently of the subclass
     def asTargetParameters(self):
-        return np.array(list(self._parameters[self._idx[k]] for k in PI.working_labels), 'f8')
+        return np.array(list(self._parameters[self._idx[k]] for k in PI.getWorkingLabels()), 'f8')
 
     # This is a "safe" update of a parameter (if they're not in the object, they are not added)
     def update(self, k, value):
         idx = self._idx.get(k, None)
-        if idx: self._parameters[idx] = value
+        if idx is not None: self._parameters[idx] = value
 
 
 # A State must have all the parameters, as can be converted to a frame
 class State(ParList):
-    validate = None  # Validation function, from paraminfo
+    _validate = None  # Validation function, from paraminfo.py
 
     def __init__(self, init=None):
         super(State, self).__init__()
         super(State, self)._init(self._al_indexes, init)  # raises UnrecoverableException
 
+    @staticmethod
+    def setValidationFunction(function):
+        if State._validate is None:
+            State._validate = function
+
     # Returns a the vocal tract and glottal frames, as required by the api
     def asFrame(self):
         idx = self._idx
-        v = list(self._parameters[idx[k]] for k in PI.vlabels)
-        g = list(self._parameters[idx[k]] for k in PI.glabels)
+        v = list(self._parameters[idx[k]] for k in PI.getVocalLabels())
+        g = list(self._parameters[idx[k]] for k in PI.getGlottalLabels())
         return [v, g]
 
     # Since this is the vocal tract state, its parameters must be validated for minimum and maximum values
     def update(self, k, value: float):
-        super(State, self).update(k, self.validate(k, value))
+        super(State, self).update(k, State._validate(k, value))
 
 
 # Helper class for parameter lists only requiring working parameters
@@ -121,9 +126,9 @@ class Target(WorkingParList):
     def getEffort(self):
         return self.__effort
 
+    # A "nonphonatory" target is a target with pressure 0.0, that is,
+    # it is reached but it doesn't produce sound
     def makeNonPhonatory(self, t_constant):
         pp = Target(t_constant, self)
         super(Target, pp).update('pressure', 0.0)
         return pp
-
-# TODO: make tests

@@ -101,5 +101,3 @@ class Synthesizer:
 
     def close(self):
         if self.api: self.api.vtlClose()
-
-# As this is a wrapper, test for this module is integration-only

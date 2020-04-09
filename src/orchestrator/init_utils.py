@@ -13,9 +13,10 @@
 import os
 import sys
 # Local imports
-from src.utils.utils import extractFileInfo
-import src.utils.paramlists as PL
-from src.vtract.expose import Synthesizer
+from ..phonologicallevel.MPP import MotorPhonemePrograms
+from ..utils.utils import extractFileInfo
+from ..utils import paramlists as PL
+from ..vtract.expose import Synthesizer
 
 
 # Loads the configuration file, assuming it's not been moved
@@ -49,7 +50,8 @@ def preliminaryInitialization(path, details):
     print('Loading parameters information...')
     param_info = synthesizer.getParametersInfo()
     if details: param_info.display()
-    print('  Initializing parameters lists...')
+    print('  Initializing parameters lists and related methods...')
     PL.ParList.setIndexes(param_info.vlabels + param_info.glabels, param_info.working_labels)
-    PL.State.validate = param_info.validate
+    PL.State.setValidationFunction(param_info.validate)
+    MotorPhonemePrograms.setSanitizingFunction(param_info.sanitize_parameter_list)
     return conf, synthesizer, param_info

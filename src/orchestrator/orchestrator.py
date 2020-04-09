@@ -116,7 +116,7 @@ class Orchestrator(Thread):
     def __plot(self):
         toPlot = np.array(self.__current_log).T
         targets = np.array(self.__targets_log).T
-        labels = np.array(vtract.VTParametersInfo.working_labels)
+        labels = np.array(vtract.VTParametersInfo.getWorkingLabels())
         # Some indexes are removed because they don't seem to contribute to production
         rem_idxs = [21, 22, 23, 27]
         toPlot = np.delete(toPlot, rem_idxs, axis=0)
@@ -144,7 +144,7 @@ class Orchestrator(Thread):
     # Function called in a loop, representing the effect of time on the system
     # In this function all subsistems' dynamic state are "advanced through time"
     def time(self):
-        done = True
+        done = True  # If an unrecoverable exception is thrown
         try:
             # The motor phoneme program is executed
             done, newState = self.__mpp.time(self.__vt.getState())  # raises UnrecoverableException
@@ -181,6 +181,3 @@ class Orchestrator(Thread):
         # This is needed because of the c_types in the api
         if self.__vt:
             self.__vt.close()
-
-
-# TODO: write tests

@@ -17,8 +17,8 @@ from scipy.special import binom as ch
 import numpy as np
 from math import e as e
 from math import factorial as fact
-
-from src.utils.utils import UnrecoverableException
+# Local imports
+from ..utils.utils import UnrecoverableException
 
 
 class MotorCommand:
@@ -39,7 +39,8 @@ class MotorCommand:
 
         # Validation; any failure does not depend on user input here
         if fn_t0 is None or fn_t0.shape != (self.N, self.p_no):
-            raise UnrecoverableException("Wrong number of initial parameters when building the commands. This is a bug.")
+            raise UnrecoverableException(
+                "Wrong number of initial parameters when building the commands. This is a bug.")
 
         # Calculate all the constants, as specified in the paper
         self.c[0] = fn_t0[0] - self.target

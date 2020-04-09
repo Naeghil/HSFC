@@ -13,9 +13,9 @@
 # Global imports
 import numpy as np
 # Local imports
-from src.utils.utils import outputAudio
-import src.utils.paramlists as pl
-from src.vtract.paraminfo import VTParametersInfo as PI
+from ..utils.utils import outputAudio
+from ..utils import paramlists as pl
+from .paraminfo import VTParametersInfo as PI
 
 
 class VocalTract:
@@ -26,14 +26,18 @@ class VocalTract:
         self.__qred = q_red
         self.counter = 0  # Used to decide which states are dumped in the synthesizer
         # Current state, initialized as the neutral values:
-        init_state = list(initial_state[k] for k in PI.vlabels+PI.glabels)
+        if isinstance(initial_state, dict):
+            init_state = list(initial_state[k] for k in PI.getVocalLabels()+PI.getGlottalLabels())
+        else:  # Any inaccuracy will be taken care of State._init()'s exceptions
+            init_state = initial_state
+
         self.__state = pl.State(init_state)  # raises ValueError, unrecoverable
 
         self.__audiopath = audio_path  # Folder in which audio is output
 
     # Originally meant for to be used for time()
     def __updateState(self, vel: pl.Velocity):
-        for k in PI.working_labels:
+        for k in PI.getWorkingLabels():
             new = vel.get(k) + self.__state.get(k)
             self.__state.update(k, new)
 
@@ -42,13 +46,13 @@ class VocalTract:
         return self.__state.asTargetParameters()
 
     # Advances "time" for the vocal tract, thus safely updating its state
-    def time(self, new: pl.WorkingParList):
+    def time(self, new: pl.WorkingParList, labels=PI.getWorkingLabels()):
         # Quality reduction
         if self.counter % self.__qred == 0:
             self.__synth.dump(self.__state.asFrame())  # Save the state as a frame
         self.counter += 1
         # State update
-        for k in PI.working_labels:
+        for k in labels:
             # Defaults to the old parameter
             self.__state.update(k, new.get(k, self.__state.get(k)))
 
@@ -63,5 +67,3 @@ class VocalTract:
     def close(self):
         # Needed because of the ctypes and internal states:
         if self.__synth: self.__synth.close()
-
-# TODO: write tests

@@ -37,5 +37,3 @@ class SomatoPhonemeTargets:
         # Constant times as worked out in parameters testing
         for i in range(int(len(con_const_raw)/2)):
             self.vow_constants[con_const_raw[i*2]] = float(con_const_raw[i*2+1])
-
-# Tests are not being implemented for this module as it's merely a databag

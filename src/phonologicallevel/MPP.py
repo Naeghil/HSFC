@@ -15,10 +15,13 @@
 import numpy as np
 # Local imports
 from .motcommand import MotorCommand
-from src.utils.paramlists import WorkingParList
+from ..utils.paramlists import Target
 
 
 class MotorPhonemePrograms:
+    _expected_target = None  # This function "sanitizes" possibly unreachable targets
+    # for the purpose of judging when it's time to move on, set from paraminfo.py
+
     def __init__(self, initial_state, frate=1000.0, err=0.04):
         self.__plan = []
         self.__progression = -1  # Index of the current command
@@ -28,14 +31,16 @@ class MotorPhonemePrograms:
 
         # Initialize the command as a "static" command, by using the initial state as target
         len_is = len(initial_state)
-        initial_dstate = np.array(len_is + [0.0] * len_is * (MotorCommand.N-1), dtype='f8'
+        initial_dstate = np.array(list(initial_state) + [0.0] * len_is * (MotorCommand.N-1), dtype='f8'
                                   ).reshape(MotorCommand.N, len_is)
-        self.__command = MotorCommand(WorkingParList(initial_state),  # raises UnrecoverableException
+        # "Static" command, which means the MPP simply doesn't move the articulators
+        self.__command = MotorCommand(Target(10.0, initial_state),  # raises UnrecoverableException
                                       initial_dstate, self.__dt)  # raises UnrecoverableException
+        self.__current_expected_target = MotorPhonemePrograms._expected_target(self.__command.target)
 
-    # Calculates the distance from the target as Mean Square Error
+    # Calculates the distance from the expected target as Mean Square Error
     def __error(self, state):
-        return np.square(state - self.__command.target).mean()
+        return (np.square(state - self.__current_expected_target)).mean()
 
     # Advances to the next command in the plan, if available
     # Returns True if the plan has been executed, False if there's steps left
@@ -45,8 +50,14 @@ class MotorPhonemePrograms:
             self.__command = MotorCommand(self.__plan[self.__progression],
                                           self.__command.getFinalValues(),
                                           self.__dt)  # raises UnrecoverableException
+            self.__current_expected_target = MotorPhonemePrograms._expected_target(self.__command.target)
             return False
         return True
+
+    @staticmethod
+    def setSanitizingFunction(function):
+        if MotorPhonemePrograms._expected_target is None:
+            MotorPhonemePrograms._expected_target = function
 
     # Adds a plan to the MPP, which is consumed at the next timeframe
     def addPlan(self, targets):
@@ -75,5 +86,3 @@ class MotorPhonemePrograms:
             end = self.__advance()  # raises UnrecoverableException
         acc = self.__command.time()
         return end, acc
-
-# TODO: do the tests
