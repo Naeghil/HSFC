@@ -133,7 +133,7 @@ class MotorSyllablePrograms:
                 for i in range(offset, len(syll[0])):
                     if syll[0][i] in self.vowels:
                         # The constant time for a vowel target depends on the consonant preceding it
-                        ct = self.vow_approach.get(syll[0][i-1], 10.0)  # Defaults to 10.0
+                        ct = self.vow_approach.get(syll[0][i-1], 15.0)  # Defaults to 15.0
                         plan.append(Target(ct, self.targets.get(syll[0][i], [])))  # raises UnrecoverableException
                     elif syll[0][i] in self.consonants:
                         coart_label = syll[0][i] + syll[1]  # The label of the coarticulated consonant
@@ -142,7 +142,7 @@ class MotorSyllablePrograms:
                     else:
                         raise UnrecoverableException("Unexpected target label: " + syll[0][i] + ". This is a bug.")
             # After the utterance is over, pressure goes to 0 and the vocal tract "relaxes"
-            plan.append(plan[-1].makeNonPhonatory(10.0))
+            plan.append(plan[-1].makeNonPhonatory(15.0))
             plan.append(Target(10.0, self.targets.get('_', [])))
             ret += plan
 
