@@ -11,8 +11,8 @@
 # -------------------------------------------------------------------------------
 
 # Local imports
-from ..utils import extractFileInfo
-from ...main import main
+from src.utils import extractFileInfo
+from main import main
 
 # In this script, acceptable arguments for 'say' are considered, and samples
 # for the experiment are synthesized.

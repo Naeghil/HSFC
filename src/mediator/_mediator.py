@@ -74,8 +74,8 @@ class Mediator(HSFCThread):
 
     # Merely a wrapper for the time function to avoid clogging the run() method
     def _safe_time(self, safe):
-        # Gives 0.5 seconds per letter, which is more than enough
-        if safe > len(self._current_utterance) * self._max_time_letter:
+        # Gives 0.5 seconds per letter, +0.5 seconds (for initial and final targets), which is more than enough
+        if safe > len(self._current_utterance)+1 * self._max_time_letter:
             self._output.put(("message",
                                "The current command for " + self._current_utterance +
                                " has been reset because of timeout"))
