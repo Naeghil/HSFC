@@ -1,5 +1,5 @@
 # -------------------------------------------------------------------------------
-# Name:        Motor-Syllable Programs
+# Name:        MSP
 # Purpose:     Originally meant as a subcomponent of HSFC, it provides similar
 #              functionalities, by translating a "conceptual signal" (user input)
 #              in a plan understandable by the system. It's responsible for
@@ -13,8 +13,8 @@
 # -------------------------------------------------------------------------------
 
 # Local imports
-from ..utils.paramlists import Target
-from ..utils.utils import RecoverableException, UnrecoverableException
+from .._parameters_lists import Target
+from ...utils import RecoverableException, UnrecoverableException
 
 
 class MotorSyllablePrograms:
@@ -82,7 +82,8 @@ class MotorSyllablePrograms:
                 syll.append(in_labels[i])
                 i += 1
             # Append all vowels (the first condition eliminates the in_labels[i]=='_' possibility
-            if (not word and not syll and in_labels[i] in self.vowels) or (i < len(in_labels) and in_labels[i] in self.coart_vowels):
+            if (not word and not syll and in_labels[i] in self.vowels) or \
+                    (i < len(in_labels) and in_labels[i] in self.coart_vowels):
                 syll.append(in_labels[i])
                 coart = in_labels[i]
                 i += 1

@@ -1,5 +1,5 @@
 # -------------------------------------------------------------------------------
-# Name:        Vocal Tract
+# Name:        vocal_tract
 # Purpose:     Represents the vocal tract in HSFC, essentially holds the state
 #              of the articulators at a given time, and uses the synthesizer
 #
@@ -13,9 +13,9 @@
 # Global imports
 import numpy as np
 # Local imports
-from ..utils.utils import outputAudio
-from ..utils import paramlists as pl
-from .paraminfo import VTParametersInfo as PI
+from .. import _parameters_lists as PL
+from ...utils import outputAudio
+from ._parameters_information import getVocalLabels, getGlottalLabels, getWorkingLabels
 
 
 class VocalTract:
@@ -27,17 +27,17 @@ class VocalTract:
         self.counter = 0  # Used to decide which states are dumped in the synthesizer
         # Current state, initialized as the neutral values:
         if isinstance(initial_state, dict):
-            init_state = list(initial_state[k] for k in PI.getVocalLabels()+PI.getGlottalLabels())
+            init_state = list(initial_state[k] for k in getVocalLabels()+getGlottalLabels())
         else:  # Any inaccuracy will be taken care of State._init()'s exceptions
             init_state = initial_state
 
-        self.__state = pl.State(init_state)  # raises ValueError, unrecoverable
+        self.__state = PL.State(init_state)  # raises ValueError, unrecoverable
 
         self.__audiopath = audio_path  # Folder in which audio is output
 
     # Originally meant for to be used for time()
-    def __updateState(self, vel: pl.Velocity):
-        for k in PI.getWorkingLabels():
+    def __updateState(self, vel):
+        for k in getWorkingLabels():
             new = vel.get(k) + self.__state.get(k)
             self.__state.update(k, new)
 
@@ -46,7 +46,9 @@ class VocalTract:
         return self.__state.asTargetParameters()
 
     # Advances "time" for the vocal tract, thus safely updating its state
-    def time(self, new: pl.WorkingParList, labels=PI.getWorkingLabels()):
+    def time(self, new, labels=None):
+        if labels is None:  # For testing purposes, labels can be provided to the function
+            labels = getWorkingLabels()
         # Quality reduction
         if self.counter % self.__qred == 0:
             self.__synth.dump(self.__state.asFrame())  # Save the state as a frame

@@ -1,11 +1,12 @@
 #Please do not change the order of these parameters, nor insert parameters
-
 #System Architecture (change as appropriate):
 64
 #VocalTractLabAPI path (wrt the root of the application):
 /lib/VTLAPI/
 #Speaker file name:
 JD2.speaker
+#Output folder for utterances:
+Outputs/
 #Frame rate (Hz):
 #This determines how many of the produced frames make 1 second of audio
 #Default of 1000Hz gives 1ms/frame

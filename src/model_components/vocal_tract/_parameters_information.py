@@ -1,5 +1,5 @@
 # -------------------------------------------------------------------------------
-# Name:        paraminfo
+# Name:        parameters_information
 # Purpose:     Databag for information about the parameters of the synthesizer
 #
 # Author:      Roberto Sautto
@@ -17,15 +17,15 @@ import ctypes
 # This assumes vt and glottis parameters have different names
 class VTParametersInfo:
     # Class variables
-    __glabels = []
-    __vlabels = []
+    _glabels = []
+    _vlabels = []
     # Working labels are the ones actually used for motion
-    __working_labels = []  # vlabels + pressure + lower_rest_displacement + upper_rest_displacement + f0
+    _working_labels = []  # vlabels + pressure + lower_rest_displacement + upper_rest_displacement + f0
 
     def __init__(self, vt, vtp_no, gp_no):
-        self.__mins = {}  # Minimum values the articulator parameters can take
-        self.__defs = {}  # Default or "rest" values
-        self.__maxs = {}  # Maximum values the articulator parameters can take
+        self._mins = {}  # Minimum values the articulator parameters can take
+        self._defs = {}  # Default or "rest" values
+        self._maxs = {}  # Maximum values the articulator parameters can take
 
         # Types for the api
         TRACT_PARAM_TYPE = ctypes.c_double * vtp_no
@@ -41,18 +41,18 @@ class VTParametersInfo:
         vt.vtlGetTractParamInfo(tract_param_names, ctypes.byref(tract_param_min),
                                 ctypes.byref(tract_param_max), ctypes.byref(tract_param_neutral))
         # Store labels in the appropriate class variables
-        VTParametersInfo.__vlabels = tract_param_names.value.decode().split()
-        VTParametersInfo.__working_labels.extend(VTParametersInfo.__vlabels)
+        VTParametersInfo._vlabels = tract_param_names.value.decode().split()
+        VTParametersInfo._working_labels.extend(VTParametersInfo._vlabels)
 
         # Save vocal tract parameters information
         vtp_max = list(tract_param_max)
         vtp_min = list(tract_param_min)
         vtp_def = list(tract_param_neutral)
-        for i in range(len(VTParametersInfo.__vlabels)):
-            l = VTParametersInfo.__vlabels[i]
-            self.__mins[l] = vtp_min[i]
-            self.__defs[l] = vtp_def[i]
-            self.__maxs[l] = vtp_max[i]
+        for i in range(len(VTParametersInfo._vlabels)):
+            l = VTParametersInfo._vlabels[i]
+            self._mins[l] = vtp_min[i]
+            self._defs[l] = vtp_def[i]
+            self._maxs[l] = vtp_max[i]
 
         # Glottis parameters
         glottis_param_names = ctypes.c_char_p((' ' * 32 * gp_no).encode())
@@ -65,60 +65,74 @@ class VTParametersInfo:
                                   ctypes.byref(glottis_param_max), ctypes.byref(glottis_param_neutral))
 
         # Store labels in the appropriate class variables
-        VTParametersInfo.__glabels = glottis_param_names.value.decode().split()
-        VTParametersInfo.__working_labels.extend(['pressure', 'lower_rest_displacement', 'upper_rest_displacement', 'f0'])
+        VTParametersInfo._glabels = glottis_param_names.value.decode().split()
+        VTParametersInfo._working_labels.extend(
+            ['pressure', 'lower_rest_displacement', 'upper_rest_displacement', 'f0'])
 
         # Save glottis parameters information
         g_max = list(glottis_param_max)
         g_min = list(glottis_param_min)
         g_def = list(glottis_param_neutral)
-        for i in range(len(VTParametersInfo.__glabels)):
-            l = VTParametersInfo.__glabels[i]
-            self.__mins[l] = g_min[i]
-            self.__defs[l] = g_def[i]
-            self.__maxs[l] = g_max[i]
+        for i in range(len(VTParametersInfo._glabels)):
+            l = VTParametersInfo._glabels[i]
+            self._mins[l] = g_min[i]
+            self._defs[l] = g_def[i]
+            self._maxs[l] = g_max[i]
         # Pressure adjustment:
-        self.__defs['pressure'] = 0.0
+        self._defs['pressure'] = 0.0
 
     # Getters:
     @staticmethod
     def getWorkingLabels():
-        return copy.deepcopy(VTParametersInfo.__working_labels)
+        return copy.deepcopy(VTParametersInfo._working_labels)
 
     @staticmethod
     def getVocalLabels():
-        return copy.deepcopy(VTParametersInfo.__vlabels)
+        return copy.deepcopy(VTParametersInfo._vlabels)
 
     @staticmethod
     def getGlottalLabels():
-        return copy.deepcopy(VTParametersInfo.__glabels)
+        return copy.deepcopy(VTParametersInfo._glabels)
 
     def getDefaults(self):
-        return copy.deepcopy(self.__defs)
+        return copy.deepcopy(self._defs)
 
     # This function validates the new value of parameter 'key' when updating the state of the vocal tract
     def validate(self, key: str, new: float) -> float:
-        if new < self.__mins[key]:
-            return self.__mins[key]
-        if new > self.__maxs[key]:
-            return self.__maxs[key]
+        if new < self._mins[key]:
+            return self._mins[key]
+        if new > self._maxs[key]:
+            return self._maxs[key]
         return new
 
     # This function "lowers" the expectation for a target by limiting it to its maxima and minima
-    # NOTE: it assumes a np.array of len(__working_labels)
+    # NOTE: it assumes a np.array of len(_working_labels)
     def sanitize_parameter_list(self, parameter_list):
         sanitized = []
-        for i in range(len(VTParametersInfo.__working_labels)):
-            label = VTParametersInfo.__working_labels[i]
+        for i in range(len(VTParametersInfo._working_labels)):
+            label = VTParametersInfo._working_labels[i]
             sanitized.append(self.validate(label, parameter_list[i]))
         return sanitized
 
     # Displays information to the user
     def display(self):
         print('    Parameters as Label(min/def/max):')
-        vt_info = list(k+'('+str(self.__mins[k])+'/'+str(self.__defs[k])+'/'+str(self.__maxs[k])+')  '
-                       for k in VTParametersInfo.__vlabels)
-        g_info = list(k+'('+str(self.__mins[k])+'/'+str(self.__defs[k])+'/'+str(self.__maxs[k])+')  '
+        vt_info = list(k+'('+str(self._mins[k])+'/'+str(self._defs[k])+'/'+str(self._maxs[k])+')  '
+                       for k in VTParametersInfo._vlabels)
+        g_info = list(k+'('+str(self._mins[k])+'/'+str(self._defs[k])+'/'+str(self._maxs[k])+')  '
                       for k in ['pressure', 'f0', 'upper_rest_displacement', 'lower_rest_displacement'])
         print(' '.join(vt_info))
         print(' '.join(g_info))
+
+
+# Definitions for interface purposes:
+def getWorkingLabels():
+    return VTParametersInfo.getWorkingLabels()
+
+
+def getVocalLabels():
+    return VTParametersInfo.getVocalLabels()
+
+
+def getGlottalLabels():
+    return VTParametersInfo.getGlottalLabels()

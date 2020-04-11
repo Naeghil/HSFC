@@ -25,6 +25,11 @@ class RecoverableException(Exception):
         super(RecoverableException, self).__init__(message)
 
 
+class CommandException(Exception):
+    def __init__(self, message=''):
+        super(CommandException, self).__init__(message)
+
+
 # Default method to extract information from HSFC's configuration and parameter files
 def extractFileInfo(path):
     with open(path) as i_file:

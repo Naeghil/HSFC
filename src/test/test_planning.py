@@ -16,9 +16,9 @@ import re
 import string
 import pytest
 # Local imports
-from ..syllablelevel.MSP import MotorSyllablePrograms
-from ..utils.paramlists import ParList
-from ..utils.utils import RecoverableException
+from ..model_components.syllable_level import MotorSyllablePrograms
+from ..model_components._parameters_lists import ParList
+from ..utils import RecoverableException
 
 # The input to the tested functions is cascading: each function gives its output to the
 # following one. Therefore I identify several equivalence classes for this kind of input:

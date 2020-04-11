@@ -1,67 +1,91 @@
 # -------------------------------------------------------------------------------
 # Name:        main
-# Purpose:     Main module of the application
+# Purpose:     Main module of the application, system entry point
 #
 # Author:      Naeghil
 #
-# Created:     15/02/2020
+# Last mod:    9/04/2020
 # Copyright:   (c) Naeghil 2020
 # Licence:     <your licence>
 # -------------------------------------------------------------------------------
-import os
 
-# Assumes src is in the same folder as main.py
+# Global imports
+import sys
 from queue import Queue
+# Local imports
+from src.user_interface import UserInterface
+from src.mediator import Mediator
 
-from src.orchestrator.orchestrator import Orchestrator
-import src.test.test as test
 
-
-def main(details=False):
-    # Obtains the root path to the sourcecode, independently from where in the code it's starting
-    # BUG: it doesn't work if it's from outside the root directory of the code
-    path = os.getcwd()
-    while os.path.basename(path) != 'HSFC':
-        path = os.path.normpath(path + os.sep + os.pardir)
-
+def main(input_inputs=None):  # inputs used for testing purposes
+    if input_inputs is None:
+        inputs = []
+    else:
+        inputs = input_inputs
     # Creates queue for user commands
-    toSay = Queue(0)
-    # Creates bucket for orchestrator's message passing
-    bucket = Queue(0)
-    # Creates the orchestrator
-    orch = Orchestrator(path, details, toSay, bucket)  # raises Exception, unrecoverable
+    mediator_input = Queue(0)
+    # Creates return queue for mediator's message passing
+    interface_input = Queue(0)
 
-    # t_labels = ['a', 'e', 'i', 'o', 'u', 'E:', 'A', 'I', 'E', 'O', 'U', '@6']
+    try:  # Create the mediator
+        mediator = Mediator(mediator_input, interface_input)  # raises Exception, unrecoverable
+    except Exception as ex:
+        print("Failure initializing the mediator:\n" + str(ex) + '\nExiting...')
+        sys.exit()
+    try:  # Create the interface
+        interface = UserInterface(interface_input, mediator_input)
+    except Exception as ex:
+        print("Failure initializing the interface:\n" + str(ex) + "\nExiting...")
+        if mediator.is_alive():
+            mediator.kill()
+            mediator.join()
+        sys.exit()
 
-    vow = ['a', 'i', 'u']
-    ''' Simple Tests
-    # vttest.testDefault(vt)
-    # i = 5
-    # vttest.testTargets(vt, spt.targets[t_labels[i]], t_labels[i]) '''
-    ''' Syllable Test
-    c_labels = ['m', 'b', 'v', 'n', 'd', 'l', 'z', 'j\\', 'g']
-    vi = 0
-    ci = 1
-    con = c_labels[ci] + vow[vi]
-    test.testSyllable(vt, spt.targets['_'], spt.targets[vow[vi]], vow[vi], spt.targets[con], con)
+    try:  # Start the two threads:
+        mediator.start()
+        interface.start()
+    except Exception as ex:
+        print("Failure starting:\n" + str(ex) + "\nExiting...")
+        if mediator.is_alive():
+            mediator.kill()
+            mediator.join()
+        if interface.is_alive():
+            interface.kill()
+            interface.join()
+        sys.exit()
 
-    c_graphemes = ['m', 'b', 'v', 'n', 'd', 'l', 'z', 'gli', 'g']
-    v = 0
-    for c in c_graphemes:
-        for v in vow:
-            test.testMSP(orch, c+v)
-            test.testMSP(orch, c+v+c+v)
-    
+    print("System ready.\n"
+          "Type 'help commands' for a list of available commands")
+    while interface.is_alive():
+        try:
+            # For testing purposes:
+            while len(inputs) != 0:
+                u_input = inputs.pop(0)
+                interface_input.put(("input", u_input))
+            # Actual user input:
+            u_input = input()
+            interface_input.put(("input", u_input))
 
-    sel_syllables = ['ga', 'ba', 'da', 'di', 'za', 'zi', 'zu', 'glia', 'gli', 'gliu', 'ma',
-                     'mi', 'mu', 'na', 'ni', 'nu', 'la', 'li', 'lu', 'va', 'vi', 'vu']
+        except Exception as ex:
+            if not isinstance(ex, EOFError):
+                print("Unexpected exception:\n" + str(ex) + "\nExiting...")
+                break
 
-    for syllablelevel in sel_syllables:
-        test.testMSP(orch, syllablelevel)
-        test.testMSP(orch, syllablelevel+syllablelevel) '''
+    try:
+        if mediator.is_alive():
+            mediator.kill()
+            mediator.join()
+    except Exception as ex:
+        print("Unexpected exception:\n" + str(ex) + "\nExiting...")
 
-    orch.terminate()
+    try:
+        if interface.is_alive():
+            interface.kill()
+            interface.join()
+    except Exception as ex:
+        print("Unexpected exception:\n" + str(ex) + "\nExiting...")
 
 
 if __name__ == '__main__':
-    main()
+    inp = list(line.replace('\n', '') for line in sys.stdin.readlines())
+    main(inp)

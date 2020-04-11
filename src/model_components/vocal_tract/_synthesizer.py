@@ -15,7 +15,7 @@
 import ctypes
 import numpy as np
 # Local imports
-from src.vtract.paraminfo import VTParametersInfo
+from ._parameters_information import VTParametersInfo
 
 
 class Synthesizer:
@@ -51,7 +51,7 @@ class Synthesizer:
         self.vtp_no = TMPvtparno.value
         self.gp_no = TMPgloparno.value
 
-    # Returns a VTParametersInfo object, stored in the orchestrator
+    # Returns a VTParametersInfo object, stored in the mediator
     def getParametersInfo(self):
         print('  Retrieving parameters information...')
         return VTParametersInfo(self.api, self.vtp_no, self.gp_no)

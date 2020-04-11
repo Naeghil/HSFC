@@ -1,5 +1,5 @@
 # -------------------------------------------------------------------------------
-# Name:        paramlists
+# Name:        parameters_lists
 # Purpose:     Useful wrappers for parameters. Some were meant to have
 #              more complex interactions with the system, but are now being used
 #              as safe databages for articulator parameters
@@ -15,8 +15,8 @@
 import numpy as np
 from abc import abstractmethod
 # Local imports
-from ..utils.utils import UnrecoverableException
-from ..vtract.paraminfo import VTParametersInfo as PI
+from ..utils import UnrecoverableException
+from ..model_components.vocal_tract import getWorkingLabels, getGlottalLabels, getVocalLabels
 
 
 # This is an abstract class
@@ -65,7 +65,7 @@ class ParList(object):
 
     # Returns a copy of only the working parameters, independently of the subclass
     def asTargetParameters(self):
-        return np.array(list(self._parameters[self._idx[k]] for k in PI.getWorkingLabels()), 'f8')
+        return np.array(list(self._parameters[self._idx[k]] for k in getWorkingLabels()), 'f8')
 
     # This is a "safe" update of a parameter (if they're not in the object, they are not added)
     def update(self, k, value):
@@ -75,7 +75,7 @@ class ParList(object):
 
 # A State must have all the parameters, as can be converted to a frame
 class State(ParList):
-    _validate = None  # Validation function, from paraminfo.py
+    _validate = None  # Validation function, from _parameters_information.py
 
     def __init__(self, init=None):
         super(State, self).__init__()
@@ -89,8 +89,8 @@ class State(ParList):
     # Returns a the vocal tract and glottal frames, as required by the api
     def asFrame(self):
         idx = self._idx
-        v = list(self._parameters[idx[k]] for k in PI.getVocalLabels())
-        g = list(self._parameters[idx[k]] for k in PI.getGlottalLabels())
+        v = list(self._parameters[idx[k]] for k in getVocalLabels())
+        g = list(self._parameters[idx[k]] for k in getGlottalLabels())
         return [v, g]
 
     # Since this is the vocal tract state, its parameters must be validated for minimum and maximum values
@@ -132,3 +132,12 @@ class Target(WorkingParList):
         pp = Target(t_constant, self)
         super(Target, pp).update('pressure', 0.0)
         return pp
+
+
+# Definitions for interface purposes
+def setIndexes(all_labels, working_labels):
+    ParList.setIndexes(all_labels, working_labels)
+
+
+def setValidation(function):
+    State.setValidationFunction(function)

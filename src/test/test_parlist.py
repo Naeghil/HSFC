@@ -18,7 +18,7 @@
 # Global imports
 import random
 # Local imports
-from ..utils.paramlists import State, ParList
+from ..model_components._parameters_lists import State, ParList
 from . import testutils
 
 

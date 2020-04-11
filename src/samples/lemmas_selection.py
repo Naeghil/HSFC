@@ -1,5 +1,5 @@
 # -------------------------------------------------------------------------------
-# Name:        selection
+# Name:        lemmas_selection
 # Purpose:     Code used for the selection of sample candidates from
 #              the CoLFIS corpus
 #

@@ -1,5 +1,5 @@
 # -------------------------------------------------------------------------------
-# Name:        motorcommand
+# Name:        motor_command
 # Purpose:     Reproduces the dynamic state of the vocal tract while attempting
 #              to reach an asymptotic target, as specified in Birkholz 2010:
 #              "Model-Based Reproduction of Articulatory Trajectories for Consonant–Vowel Sequences"
@@ -18,7 +18,7 @@ import numpy as np
 from math import e as e
 from math import factorial as fact
 # Local imports
-from ..utils.utils import UnrecoverableException
+from ...utils import UnrecoverableException
 
 
 class MotorCommand:

@@ -26,10 +26,10 @@ import random
 import numpy as np
 import matplotlib.pyplot as pl
 # Local imports
-from ..phonologicallevel.MPP import MotorPhonemePrograms
+from ..model_components.phonological_level import MotorPhonemePrograms
 from . import testutils
-from ..utils.paramlists import ParList, Target, WorkingParList, State
-from ..vtract.vtract import VocalTract
+from ..model_components._parameters_lists import ParList, Target, WorkingParList, State
+from ..model_components.vocal_tract import VocalTract
 
 
 class MockSynth:
@@ -119,12 +119,14 @@ def sanitize_parameter_list(parameter_list, parameter_labels, mins, maxs):
 # Each case is (target, expected reaching, expected behaviour)
 def generate_cases(parameter_labels, mins, maxs):
     test_cases = []
-    # Reachable targets
+
     for i in range(20):
+        # Reachable targets
         target = generate_parameter_list(parameter_labels, mins, maxs)
         test_cases.append((Target(10.0, target),
                            target,
                            "Reach the target as it is."))
+        # Potentially unreachable targets
         target = generate_parameter_list(parameter_labels)
         test_cases.append((Target(10.0, target),
                            sanitize_parameter_list(target, parameter_labels, mins, maxs),
@@ -143,7 +145,8 @@ def test_no_target():
     ParList.setIndexes(parameter_labels, parameter_labels)
     MockParInfo.setParInfo(parameter_labels, mins, maxs)
     State.setValidationFunction(MockParInfo.validate)
-    State.asTargetParameters = WorkingParList.asTargetParameters  # VTParametersInfo hasn't been set (see paramlists.py)
+    # VTParametersInfo hasn't been set (see _parameters_lists.py)
+    State.asTargetParameters = WorkingParList.asTargetParameters
     MotorPhonemePrograms.setSanitizingFunction(MockParInfo.mock_expected)
 
     # Initialize items to test
@@ -173,7 +176,8 @@ def test_motion():
     ParList.setIndexes(parameter_labels, parameter_labels)
     MockParInfo.setParInfo(parameter_labels, mins, maxs)
     State.setValidationFunction(MockParInfo.validate)
-    State.asTargetParameters = WorkingParList.asTargetParameters  # VTParametersInfo hasn't been set (see paramlists.py)
+    # VTParametersInfo hasn't been set (see _parameters_lists.py)
+    State.asTargetParameters = WorkingParList.asTargetParameters
     MotorPhonemePrograms.setSanitizingFunction(MockParInfo.mock_expected)
 
     # Initialize items to test
@@ -193,8 +197,8 @@ def test_motion():
             target_log.append(case[1])
             counter += 1
         assert counter != 500, "Timeout while producing: "+str(case[0])
-        plt = plot(state_log, target_log, parameter_labels, mins, maxs)
-        plt.show(block=True)
+        #plt = plot(state_log, target_log, parameter_labels, mins, maxs)
+        #plt.show(block=True)
         state_log = []
         target_log = []
         error = np.square(vt.getState() - case[1]).mean()

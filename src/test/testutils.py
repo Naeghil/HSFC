@@ -10,7 +10,6 @@
 # -------------------------------------------------------------------------------
 
 # Global imports
-import pytest
 import random
 import string
 

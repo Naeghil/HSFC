@@ -1,5 +1,5 @@
 # -------------------------------------------------------------------------------
-# Name:        Motor-Phoneme Programs
+# Name:        MPP
 # Purpose:     Originally meant as a subcomponent of HSFC, it provides similar
 #              functionalities, handling the succession and execution of motor
 #              commands at the phoneme level (i.e. phoneme by phoneme)
@@ -14,13 +14,13 @@
 # Global imports
 import numpy as np
 # Local imports
-from .motcommand import MotorCommand
-from ..utils.paramlists import Target
+from ._motor_command import MotorCommand
+from .._parameters_lists import Target
 
 
 class MotorPhonemePrograms:
     _expected_target = None  # This function "sanitizes" possibly unreachable targets
-    # for the purpose of judging when it's time to move on, set from paraminfo.py
+    # for the purpose of judging when it's time to move on, set from _parameters_information.py
 
     def __init__(self, initial_state, frate=1000.0, err=0.04):
         self.__plan = []
@@ -86,3 +86,8 @@ class MotorPhonemePrograms:
             end = self.__advance()  # raises UnrecoverableException
         acc = self.__command.time()
         return end, acc
+
+
+# Definitions for interface purposes:
+def setTargetSanitizer(function):
+    MotorPhonemePrograms.setSanitizingFunction(function)
